@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import dayjs from "dayjs";
-import { sanitizeROI, toDecimal } from "@/helpers/numbers";
-import {
-  AmortisationTableFrequency,
-  AmortisationRow,
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { Dayjs } from "dayjs";
+import { sanitizeROI } from "@/helpers/numbers";
+import { AmortisationTableFrequency } from "@/types/Loan/LoanTypes";
+import type {
+  AmortisationOverrides,
   LoanData,
+  MonthOverride,
 } from "@/types/Loan/LoanTypes";
+import { buildAmortisation } from "@/components/Common/LoanCalculator/helpers/amortisation";
 import { generatePDF } from "@/components/Common/LoanCalculator/helpers/pdfGenerator";
 import { Tenure } from "@/types/ConfigTypes";
 import { PrepaymentsByMonth } from "./usePrepayments";
@@ -17,151 +19,111 @@ export const useLoanAmortisation = (
   roi: string,
   tenure: Tenure,
   prepaymentsByMonth: PrepaymentsByMonth,
-  hasPrepayments: boolean
+  hasPrepayments: boolean,
+  startMonth: Dayjs
 ) => {
   const { formatAmount } = useCurrency();
   const tenureMonths = tenure.years * 12 + tenure.months;
-  const [yearlyRowData, setYearlyRowData] = useState<AmortisationRow[]>([]);
-  const [monthlyRowData, setMonthlyRowData] = useState<AmortisationRow[]>([]);
-  const [interestPaid, setInterestPaid] = useState(0);
-  const [principalPaid, setPrincipalPaid] = useState(0);
-  const [totalPrepayments, setTotalPrepayments] = useState(0);
-  const [totalPayment, setTotalPayment] = useState(0);
-  const [timesPaid, setTimesPaid] = useState(0);
-  const [emi, setEmi] = useState(0);
+
+  /**
+   * Manual changes, keyed by month index. Deliberately separate from the schedule
+   * so an edit is an instruction rather than a rewrite of the numbers, and so
+   * every later month can be re-derived from it.
+   */
+  const [overrides, setOverrides] = useState<AmortisationOverrides>({});
+
   const sanitizedROI = sanitizeROI(roi);
   const isIncompleteROT = sanitizedROI[sanitizedROI.length - 1] === ".";
   const rateOfInterest = isIncompleteROT
     ? parseFloat(sanitizedROI.split(".")[0])
     : parseFloat(sanitizedROI);
-  const baseDate = dayjs();
 
-  const calculateAmortisation = useCallback(() => {
-    const monthlyRate = rateOfInterest / 12 / 100;
-    const emi =
-      (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) /
-      (Math.pow(1 + monthlyRate, tenureMonths) - 1);
-    let balance = loanAmount;
-    const monthlyData: AmortisationRow[] = [];
-    setEmi(emi);
+  /**
+   * The first month of the schedule, from the start month the user chose.
+   *
+   * Memoised because a fresh Dayjs object on every render would change the
+   * memo's dependencies each time and rebuild the whole schedule for nothing.
+   */
+  const baseDate = useMemo(() => startMonth.startOf("month"), [startMonth]);
 
-    const yearData: Record<
-      number,
-      Omit<AmortisationRow, "loanPaidPercent">
-    > = {};
+  const schedule = useMemo(
+    () =>
+      buildAmortisation({
+        loanAmount,
+        rateOfInterest,
+        tenureMonths,
+        baseDate,
+        prepaymentsByMonth,
+        overrides,
+      }),
+    [baseDate, loanAmount, overrides, prepaymentsByMonth, rateOfInterest, tenureMonths]
+  );
 
-    for (let i = 0; i < tenureMonths; i++) {
-      const emiDate = baseDate.add(i, "month");
-      const monthYear = Number(emiDate.format("YYYYMM"));
-      const availablePrepayment = prepaymentsByMonth[monthYear] || 0;
-      const interest = balance * monthlyRate;
-      const amountCanBeGivenToPrincipal = emi - interest;
-      const isBalanceFullyPaid: boolean =
-        amountCanBeGivenToPrincipal >= balance;
-      const isBalanceFullyPaidWithPrepayment =
-        amountCanBeGivenToPrincipal + availablePrepayment >= balance;
-      const prepayment = isBalanceFullyPaid
-        ? 0
-        : isBalanceFullyPaidWithPrepayment
-        ? balance - amountCanBeGivenToPrincipal
-        : availablePrepayment;
-      const principal = isBalanceFullyPaid
-        ? balance
-        : amountCanBeGivenToPrincipal;
-      const totalPaid = isBalanceFullyPaid
-        ? principal + interest + prepayment
-        : emi + prepayment;
+  const hasManualChanges = Object.keys(overrides).length > 0;
 
-      balance -= principal + availablePrepayment;
-      if (balance < 0) {
-        balance = 0;
-      }
+  /**
+   * Records a change against one month. The EMI and the rate carry forward to
+   * every later month; a prepayment stays on the month it was entered against.
+   * Later changes stack, so editing month 30 after month 12 keeps both.
+   */
+  const applyMonthChange = useCallback(
+    (monthIndex: number, change: MonthOverride) => {
+      setOverrides((current) => {
+        const next = { ...current };
 
-      const year = emiDate.year();
-      if (!yearData[year]) {
-        yearData[year] = {
-          year,
-          principalPaid: 0,
-          prepayments: 0,
-          interestPaid: 0,
-          totalPaid: 0,
-          balance: 0,
-        };
-      }
+        for (const key of Object.keys(change) as (keyof MonthOverride)[]) {
+          if (change[key] === undefined) {
+            delete next[monthIndex]?.[key];
+            continue;
+          }
 
-      yearData[year].principalPaid += principal;
-      yearData[year].prepayments += prepayment;
-      yearData[year].interestPaid += interest;
-      yearData[year].totalPaid += totalPaid;
-      yearData[year].balance = Math.max(0, balance);
+          next[monthIndex] = { ...next[monthIndex], [key]: change[key] };
+        }
 
-      monthlyData.push({
-        year: monthYear,
-        principalPaid: Math.round(principal),
-        prepayments: Math.round(prepayment),
-        interestPaid: Math.round(interest),
-        totalPaid: Math.round(totalPaid),
-        balance: Math.round(Math.max(0, balance)),
-        loanPaidPercent: toDecimal(((loanAmount - balance) / loanAmount) * 100),
+        // A month left with nothing is not a change.
+        if (next[monthIndex] && Object.keys(next[monthIndex]).length === 0) {
+          delete next[monthIndex];
+        }
+
+        return next;
       });
+    },
+    []
+  );
 
-      if (balance === 0) break;
-    }
+  const clearMonthChange = useCallback((monthIndex: number) => {
+    setOverrides((current) => {
+      const next = { ...current };
+      delete next[monthIndex];
+      return next;
+    });
+  }, []);
 
-    const formattedYearlyData: AmortisationRow[] = Object.values(yearData).map(
-      (yearEntry) => ({
-        ...yearEntry,
-        principalPaid: Math.round(yearEntry.principalPaid),
-        prepayments: Math.round(yearEntry.prepayments),
-        interestPaid: Math.round(yearEntry.interestPaid),
-        totalPaid: Math.round(yearEntry.totalPaid),
-        balance: Math.round(yearEntry.balance),
-        loanPaidPercent: toDecimal(
-          ((loanAmount - yearEntry.balance) / loanAmount) * 100
-        ),
-      })
-    );
+  const clearManualChanges = useCallback(() => {
+    setOverrides({});
+  }, []);
 
-    const { totalInterest, totalPrincipal, totalPrepayments } =
-      formattedYearlyData.reduce(
-        (acc, yearlyData) => {
-          acc.totalInterest += yearlyData.interestPaid;
-          acc.totalPrincipal += yearlyData.principalPaid;
-          acc.totalPrepayments += yearlyData.prepayments;
-          return acc;
-        },
-        { totalInterest: 0, totalPrincipal: 0, totalPrepayments: 0 }
-      );
-
-    const totalPayment = totalInterest + totalPrincipal + totalPrepayments;
-    const timesPaid = totalPayment / loanAmount;
-    setTotalPayment(totalPayment);
-    setYearlyRowData(formattedYearlyData);
-    setMonthlyRowData(monthlyData);
-    setInterestPaid(totalInterest);
-    setPrincipalPaid(totalPrincipal);
-    setTotalPrepayments(totalPrepayments);
-    setTimesPaid(toDecimal(timesPaid));
-  }, [rateOfInterest, loanAmount, tenureMonths, baseDate, prepaymentsByMonth]);
+  const getMonthChange = useCallback(
+    (monthIndex: number): MonthOverride => overrides[monthIndex] ?? {},
+    [overrides]
+  );
 
   const downloadAmortisation = useCallback(
-    (
-      tableFrequency: AmortisationTableFrequency = AmortisationTableFrequency.Monthly
-    ) => {
+    (tableFrequency: AmortisationTableFrequency = AmortisationTableFrequency.Monthly) => {
       const isYearly = tableFrequency === AmortisationTableFrequency.Yearly;
-      const tableData = isYearly ? yearlyRowData : monthlyRowData;
+      const tableData = isYearly ? schedule.yearlyRows : schedule.monthlyRows;
       const monthYear = Number(baseDate.format("YYYYMM"));
       const loanData: LoanData = {
         loanAmount,
         rateOfInterest,
         tenureMonths,
-        tenureWithPrepaymentMonths: monthlyRowData.length,
-        emi,
+        tenureWithPrepaymentMonths: schedule.monthlyRows.length,
+        emi: schedule.baseEmi,
         monthYear,
-        hasPrepayments,
-        totalPrepayments,
-        totalPrincipalPaid: principalPaid,
-        totalInterestPaid: interestPaid,
+        hasPrepayments: hasPrepayments || hasManualChanges,
+        totalPrepayments: schedule.totals.totalPrepayments,
+        totalPrincipalPaid: schedule.totals.principalPaid,
+        totalInterestPaid: schedule.totals.interestPaid,
       };
       generatePDF(tableData, loanData, tableFrequency, formatAmount);
       trackEvent(
@@ -171,34 +133,38 @@ export const useLoanAmortisation = (
       );
     },
     [
-      yearlyRowData,
-      monthlyRowData,
+      schedule,
       baseDate,
       loanAmount,
       rateOfInterest,
       tenureMonths,
-      emi,
       hasPrepayments,
-      totalPrepayments,
-      principalPaid,
-      interestPaid,
+      hasManualChanges,
       formatAmount,
     ]
   );
 
+  // A different loan is a different schedule, so the changes attached to the old
+  // one no longer mean anything.
   useEffect(() => {
-    calculateAmortisation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loanAmount, roi, tenureMonths, prepaymentsByMonth, hasPrepayments]);
+    setOverrides({});
+  }, [loanAmount, roi, tenureMonths, prepaymentsByMonth]);
 
   return {
-    yearlyRowData,
-    monthlyRowData,
+    yearlyRowData: schedule.yearlyRows,
+    monthlyRowData: schedule.monthlyRows,
     downloadAmortisation,
-    interestPaidActual: interestPaid,
-    principalPaidActual: principalPaid,
-    totalPrepayments,
-    timesPaidActual: timesPaid,
-    totalPaidActual: totalPayment,
+    interestPaidActual: schedule.totals.interestPaid,
+    principalPaidActual: schedule.totals.principalPaid,
+    totalPrepayments: schedule.totals.totalPrepayments,
+    timesPaidActual: schedule.totals.timesPaid,
+    totalPaidActual: schedule.totals.totalPayment,
+    baseEmi: schedule.baseEmi,
+    overrides,
+    hasManualChanges,
+    applyMonthChange,
+    clearMonthChange,
+    clearManualChanges,
+    getMonthChange,
   };
 };

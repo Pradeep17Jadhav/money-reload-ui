@@ -1,0 +1,48 @@
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.tile {
+    border-radius: 0.8rem;
+    box-shadow: var(--shadow-primary);
+    background-color: var(--background-secondary);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.label {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--foreground-caption);
+}
+
+.value {
+    font-size: 1.4em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    /* Long rupee totals must not overflow the tile on a narrow screen. */
+    overflow-wrap: anywhere;
+}
+
+.subValue {
+    font-size: 0.85em;
+    color: var(--foreground-secondary);
+}
+
+.errorTile {
+    composes: tile;
+    color: var(--loss);
+}
+
+@media (max-width: 600px) {
+    .value {
+        font-size: 1.2em;
+    }
+}

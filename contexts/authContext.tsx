@@ -23,8 +23,9 @@ import {
   refreshSession,
   register,
 } from "@/services/auth";
+import { ApiError, authRequest } from "@/services/apiClient";
 import { AUTH_STORAGE_KEY } from "@/services/auth/tokenStorage";
-import { getSessionRestoreMessage } from "@/helpers/authErrors";
+import { getSessionRestoreMessage } from "@/helpers/apiErrors";
 
 /** Renew a little before the access token actually lapses. */
 const REFRESH_SKEW_MS = 60_000;
@@ -32,6 +33,17 @@ const REFRESH_SKEW_MS = 60_000;
 /** A transport blip should not end a session, but it should not retry forever. */
 const REFRESH_RETRY_MS = 10_000;
 const MAX_REFRESH_RETRIES = 2;
+
+/**
+ * Codes after which a request can never succeed with the tokens held: the
+ * session is gone, so there is nothing to refresh.
+ */
+const UNRECOVERABLE = new Set<AuthErrorCode>([
+  AuthErrorCode.SESSION_REVOKED,
+  AuthErrorCode.TOKEN_INVALID,
+  AuthErrorCode.TOKEN_MISSING,
+  AuthErrorCode.USER_NOT_FOUND,
+]);
 
 type AuthState = {
   status: AuthStatus;
@@ -61,6 +73,16 @@ type AuthContextValue = {
   signIn: (payload: LoginPayload) => Promise<AuthResult>;
   signUp: (payload: RegisterPayload) => Promise<AuthResult>;
   signOut: () => Promise<void>;
+  /**
+   * Performs an authenticated API call: attaches the access token, renews it
+   * once if it has expired, and ends the session when the server says the
+   * session is gone. Injected into the service layer rather than imported by
+   * it, so services stay free of React.
+   */
+  authorisedRequest: <TData>(
+    path: string,
+    options?: { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown }
+  ) => Promise<TData>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -212,6 +234,70 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await logout();
   }, [signOutLocally]);
 
+  const authorisedRequest = useCallback(
+    async <TData,>(
+      path: string,
+      options?: { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown }
+    ): Promise<TData> => {
+      const tokens = getStoredTokens();
+
+      if (!tokens) {
+        throw new ApiError({
+          code: AuthErrorCode.TOKEN_MISSING,
+          message: "There is no stored session.",
+        });
+      }
+
+      try {
+        return await authRequest<TData>(path, { ...options, token: tokens.accessToken });
+      } catch (error) {
+        if (!isApiError(error)) {
+          throw error;
+        }
+
+        // An expired access token is renewable: exchange the refresh token once
+        // and replay the original request exactly once.
+        if (error.code === AuthErrorCode.TOKEN_EXPIRED) {
+          try {
+            const renewed = await refreshSession();
+            adoptSession(renewed.user);
+          } catch (refreshError) {
+            // A transport failure leaves the session alone; the session may
+            // still be good and the user is simply offline.
+            if (
+              isApiError(refreshError) &&
+              refreshError.code !== AuthErrorCode.NETWORK_ERROR
+            ) {
+              signOutLocally();
+            }
+            throw refreshError;
+          }
+
+          const refreshedTokens = getStoredTokens();
+          if (!refreshedTokens) {
+            throw new ApiError({
+              code: AuthErrorCode.TOKEN_MISSING,
+              message: "The session was lost while renewing the access token.",
+            });
+          }
+
+          return authRequest<TData>(path, {
+            ...options,
+            token: refreshedTokens.accessToken,
+          });
+        }
+
+        // Nothing to renew. Clear the session and let the guard redirect.
+        if (UNRECOVERABLE.has(error.code)) {
+          signOutLocally();
+        }
+
+        throw error;
+      }
+    },
+    [adoptSession, signOutLocally]
+  );
+
   const contextValue = useMemo(
     () => ({
       status: state.status,
@@ -221,8 +307,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       signIn,
       signUp,
       signOut,
+      authorisedRequest,
     }),
-    [state.status, state.user, state.sessionRestoreMessage, signIn, signUp, signOut]
+    [
+      state.status,
+      state.user,
+      state.sessionRestoreMessage,
+      signIn,
+      signUp,
+      signOut,
+      authorisedRequest,
+    ]
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import AuthPanel from "@/components/AuthPanel/AuthPanel";
 import AuthField from "@/components/AuthField/AuthField";
 import { useAuth } from "@/contexts/authContext";
-import { getAuthErrorCopy, getRateLimitMessage } from "@/helpers/authErrors";
+import { getAuthErrorCopy, getRateLimitMessage } from "@/helpers/apiErrors";
 import {
   LOGIN_INITIAL_VALUES,
   hasErrors,

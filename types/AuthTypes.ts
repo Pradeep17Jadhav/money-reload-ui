@@ -13,6 +13,10 @@ export enum AuthErrorCode {
   SESSION_REVOKED = "session_revoked",
   NOT_FOUND = "not_found",
   USER_NOT_FOUND = "user_not_found",
+  LOAN_NOT_FOUND = "loan_not_found",
+  INCOME_NOT_FOUND = "income_not_found",
+  EXPENSE_NOT_FOUND = "expense_not_found",
+  GOAL_NOT_FOUND = "goal_not_found",
   USERNAME_TAKEN = "username_taken",
   EMAIL_TAKEN = "email_taken",
   CONFLICT = "conflict",
@@ -97,3 +101,14 @@ export type RegisterPayload = {
 };
 
 export type AuthStatus = "initialising" | "authenticated" | "unauthenticated";
+
+/**
+ * Partial update. `username`, `email`, `id` and `password` are not editable
+ * through this endpoint, and every request body rejects unknown fields.
+ */
+export type UpdateProfilePayload = {
+  firstName?: string;
+  lastName?: string;
+  country?: string;
+  gender?: Gender;
+};

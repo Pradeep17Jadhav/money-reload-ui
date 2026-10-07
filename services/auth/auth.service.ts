@@ -1,6 +1,6 @@
 import { AuthErrorCode } from "@/types/AuthTypes";
-import type { AuthResult, AuthTokens, AuthUser, LoginPayload, RegisterPayload } from "@/types/AuthTypes";
-import { ApiError, authRequest, isApiError } from "./apiClient";
+import type { AuthResult, AuthTokens, AuthUser, LoginPayload, RegisterPayload, UpdateProfilePayload } from "@/types/AuthTypes";
+import { ApiError, authRequest, isApiError } from "@/services/apiClient";
 import { clearStoredSession, getStoredSession, saveStoredSession } from "./tokenStorage";
 
 /**
@@ -167,6 +167,35 @@ export const fetchCurrentUser = async (): Promise<AuthUser> => {
 
     throw apiError;
   }
+};
+
+/**
+ * Partial profile update. Returns the full updated user, and `username`, `email`
+ * and `id` are deliberately absent from the payload type because the endpoint
+ * rejects them.
+ */
+export const updateCurrentUser = async (
+  payload: UpdateProfilePayload
+): Promise<AuthUser> => {
+  const { user } = await authRequest<{ user: AuthUser }>("/auth/me", {
+    method: "PATCH",
+    body: payload,
+    token: getStoredTokens()?.accessToken,
+  });
+
+  return user;
+};
+
+/** Returns 204 with an empty body, so there is nothing to return. */
+export const changePassword = async (
+  currentPassword: string,
+  newPassword: string
+): Promise<void> => {
+  await authRequest<void>("/auth/change-password", {
+    method: "POST",
+    body: { currentPassword, newPassword },
+    token: getStoredTokens()?.accessToken,
+  });
 };
 
 export const getStoredTokens = (): AuthTokens | null => {

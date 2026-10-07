@@ -1,4 +1,4 @@
-import { ApiError, authRequest, getApiBaseUrl } from "@/services/auth/apiClient";
+import { ApiError, authRequest, getApiBaseUrl } from "@/services/apiClient";
 import { AuthErrorCode } from "@/types/AuthTypes";
 import {
   createErrorResponse,

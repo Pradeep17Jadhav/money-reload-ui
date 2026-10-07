@@ -1,0 +1,76 @@
+.tools {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    height: 100%;
+}
+
+/* Matches .navLink in the navbar: bottom rule, same hover treatment. */
+.trigger {
+    box-sizing: content-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    height: 64px;
+    padding: 0 16px;
+    margin: 0;
+    font-size: 0.9em;
+    color: inherit;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+
+.activeTrigger,
+.trigger:hover {
+    border-bottom: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.trigger:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}
+
+.caret {
+    transition: transform 0.2s ease-in-out;
+}
+
+.openCaret {
+    transform: rotate(180deg);
+}
+
+.panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 20;
+    min-width: 220px;
+    margin: 0;
+    padding: 8px 0;
+    list-style: none;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow-spread);
+}
+
+.panelLink {
+    display: block;
+    padding: 10px 20px;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.panelLink:hover,
+.activePanelLink {
+    background-color: var(--hover-background);
+    color: var(--primary);
+}
+
+.panelLink:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}

@@ -1,11 +1,3 @@
-import AuthenticatedPage from "@/components/AuthenticatedPage/AuthenticatedPage";
+import ExpensePage from "@/app/expenses/ExpensePage";
 
-const ExpensesPage = () => (
-  <AuthenticatedPage
-    title="Expenses"
-    subtitle="Everything going out, month after month."
-    placeholder="Your expenses will appear here."
-  />
-);
-
-export default ExpensesPage;
+export default ExpensePage;

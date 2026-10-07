@@ -18,6 +18,8 @@ export type LoanCalculatorProps = {
   resultsReady: boolean;
   isValidForm: boolean;
   hasPrepayments: boolean;
+  /** True once a month of the schedule has been edited by hand. */
+  hasManualChanges?: boolean;
   loanAmount: number;
   roi: string;
   totalPaid: number;
@@ -36,6 +38,7 @@ const LoanCalculatorSummary = ({
   resultsReady,
   isValidForm,
   hasPrepayments,
+  hasManualChanges = false,
   loanAmount,
   roi,
   totalPaid,
@@ -136,6 +139,13 @@ const LoanCalculatorSummary = ({
               right={formatAmount(prepaymentSavings)}
               profit
               tooltip={toWords.convert(toDecimal(prepaymentSavings, 0))}
+            />
+          )}
+          {hasManualChanges && (
+            <SummaryItem
+              left="Schedule changed by hand"
+              right="Included above"
+              tooltip="Totals include the months you edited."
             />
           )}
         </SummaryBlock>

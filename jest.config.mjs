@@ -12,9 +12,12 @@ const customJestConfig = {
   testMatch: [
     "<rootDir>/app/**/__tests__/**/*.test.(ts|tsx)",
     "<rootDir>/components/**/*.test.(ts|tsx)",
+    "<rootDir>/constants/**/*.test.(ts|tsx)",
     "<rootDir>/contexts/**/*.test.(ts|tsx)",
     "<rootDir>/helpers/**/*.test.(ts|tsx)",
+    "<rootDir>/hooks/**/*.test.(ts|tsx)",
     "<rootDir>/services/**/*.test.(ts|tsx)",
+    "<rootDir>/types/**/*.test.(ts|tsx)",
   ],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",

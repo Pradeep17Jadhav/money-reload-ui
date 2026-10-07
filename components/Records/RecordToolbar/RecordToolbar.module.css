@@ -1,0 +1,111 @@
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.control {
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+}
+
+.controlNarrow {
+    composes: control;
+    min-width: 120px;
+}
+
+.controlWide {
+    composes: control;
+    flex: 1 1 220px;
+}
+
+.label {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--foreground-caption);
+    margin-bottom: 6px;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Pill-shaped, like every other primary action in the app. */
+.primaryButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 12px 28px;
+    border-radius: 48px;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--foreground-strongest);
+    transition: background-color 0.3s ease-in-out;
+}
+
+.primaryButton:hover {
+    background-color: var(--primary-light);
+    border-color: var(--primary-light);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.secondaryButton {
+    font-size: 0.9em;
+    cursor: pointer;
+    padding: 12px 24px;
+    border-radius: 48px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--foreground-secondary);
+}
+
+.secondaryButton:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.multiSelect {
+    min-width: 200px;
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+    font-size: 0.85em;
+    color: var(--foreground-secondary);
+}
+
+@media (max-width: 700px) {
+    .toolbar {
+        gap: 12px;
+    }
+
+    .control,
+    .controlNarrow,
+    .controlWide {
+        min-width: 140px;
+        flex: 1 1 140px;
+    }
+}

@@ -19,6 +19,8 @@ import Logo from "../Logo/Logo";
 import { PATHS } from "@/constants/path";
 import CurrencySelector from "../CurrencySelector/CurrencySelector";
 import AuthMenu from "../AuthMenu/AuthMenu";
+import ToolsMenu from "@/components/ToolsMenu/ToolsMenu";
+import { useAuth } from "@/contexts/authContext";
 import { useCurrency } from "@/contexts/currency";
 import { AnalyticsEventType, trackEvent } from "@/helpers/analytics";
 
@@ -26,6 +28,7 @@ import styles from "./AppBar.module.css";
 
 const AppBar = () => {
   const { isINR, currency } = useCurrency();
+  const { isSignedIn } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
@@ -117,6 +120,11 @@ const AppBar = () => {
     []
   );
 
+  const navPages = useMemo(
+    () => [...publicPages, ...privatePages],
+    [publicPages, privatePages]
+  );
+
   return (
     <Container className={styles.appbarContainer} maxWidth={false}>
       <Toolbar className={styles.appbarToolbar} disableGutters>
@@ -177,44 +185,31 @@ const AppBar = () => {
           className={styles.navLinkContainer}
           sx={{ flexGrow: 0, display: { xs: "none", md: "flex" } }}
         >
-          {publicPages.map(({ label, tooltip, to, enabled }) => {
-            const isActive = pathname === to;
-            return enabled ? (
-              <Tooltip key={label} title={tooltip}>
-                <Link
-                  href={to}
-                  onClick={handleNavLinkClick}
-                  className={classnames(styles.navLink, {
-                    [styles.activeNavLink]: isActive,
-                  })}
-                >
-                  {label}
-                </Link>
-              </Tooltip>
-            ) : null;
-          })}
-        </Box>
-
-        <Box
-          className={styles.navLinkContainer}
-          sx={{ flexGrow: 0, display: { xs: "none", md: "flex" } }}
-        >
-          {privatePages.map(({ label, tooltip, to, enabled }) => {
-            const isActive = pathname === to;
-            return enabled ? (
-              <Tooltip key={label} title={tooltip}>
-                <Link
-                  href={to}
-                  onClick={handleNavLinkClick}
-                  className={classnames(styles.navLink, {
-                    [styles.activeNavLink]: isActive,
-                  })}
-                >
-                  {label}
-                </Link>
-              </Tooltip>
-            ) : null;
-          })}
+          {isSignedIn ? (
+            // A signed-in account already has a place of its own, so the tools
+            // fold into one item rather than filling the toolbar.
+            <ToolsMenu
+              items={navPages.filter((page) => page.enabled)}
+              activePath={pathname}
+            />
+          ) : (
+            navPages.map(({ label, tooltip, to, enabled }) => {
+              const isActive = pathname === to;
+              return enabled ? (
+                <Tooltip key={label} title={tooltip}>
+                  <Link
+                    href={to}
+                    onClick={handleNavLinkClick}
+                    className={classnames(styles.navLink, {
+                      [styles.activeNavLink]: isActive,
+                    })}
+                  >
+                    {label}
+                  </Link>
+                </Tooltip>
+              ) : null;
+            })
+          )}
         </Box>
 
         <Box

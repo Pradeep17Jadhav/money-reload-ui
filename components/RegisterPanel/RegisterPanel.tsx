@@ -12,7 +12,7 @@ import AvatarInitials from "@/components/AvatarInitials/AvatarInitials";
 import { useAuth } from "@/contexts/authContext";
 import { COUNTRIES } from "@/helpers/countries";
 import { getInitials } from "@/helpers/initials";
-import { getAuthErrorCopy, getRateLimitMessage } from "@/helpers/authErrors";
+import { getAuthErrorCopy, getRateLimitMessage } from "@/helpers/apiErrors";
 import {
   EMAIL_MAX_LENGTH,
   NAME_MAX_LENGTH,

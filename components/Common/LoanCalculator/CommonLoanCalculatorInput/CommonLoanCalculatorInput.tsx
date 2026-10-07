@@ -1,6 +1,10 @@
 "use client";
 
 import { ChangeEvent } from "react";
+import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Section from "@/components/Section/Section";
 import { useAmountSelection } from "@/hooks/Loan/useLoanSelection";
 import { LoanCalculatorType, Tenure } from "@/types/ConfigTypes";
@@ -17,11 +21,15 @@ import LargeButton from "@/components/Buttons/LargeButton/LargeButton";
 import { useMediaQuery, useTheme } from "@mui/material";
 import PrepaymentInputElement from "@/components/Loan/PrepaymentInputElement/PrepaymentInputElement";
 
+import styles from "./CommonLoanCalculatorInput.module.css";
+
 type Props = {
   loanCalculatorType: LoanCalculatorType;
   loanAmount: number;
   roi: string;
   tenure: Tenure;
+  /** The month the loan begins, which every date in the schedule is built from. */
+  startMonth: Dayjs;
   isValidForm: boolean;
   minAmount: number;
   maxAmount: number;
@@ -46,6 +54,7 @@ type Props = {
     e?: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     months?: string
   ) => void;
+  handleStartMonthChange: (value: Dayjs | null) => void;
   getLoanAmountScale: (value: number) => number;
   getLoanAmountInverseScale: (value: number) => number;
 };
@@ -55,6 +64,7 @@ const CommonLoanCalculatorInput = ({
   loanAmount,
   roi,
   tenure,
+  startMonth,
   isValidForm,
   minAmount,
   maxAmount,
@@ -67,6 +77,7 @@ const CommonLoanCalculatorInput = ({
   handleROIChange,
   handleTenureYearsChange,
   handleTenureMonthsChange,
+  handleStartMonthChange,
   getLoanAmountScale,
   getLoanAmountInverseScale,
 }: Props) => {
@@ -139,6 +150,24 @@ const CommonLoanCalculatorInput = ({
         selectMonths={selectMonths}
         showMonths
       />
+
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <div className={styles.startMonthField} data-testid="loan-start-month">
+          <DatePicker
+            label="Start month"
+            // Month granularity: the schedule is built in whole months, so offering
+            // a day would imply a precision the calculation does not have.
+            views={["month", "year"]}
+            value={startMonth}
+            onChange={handleStartMonthChange}
+            maxDate={dayjs().endOf("month")}
+            slotProps={{
+              textField: { size: "small", fullWidth: true },
+              field: { clearable: false },
+            }}
+          />
+        </div>
+      </LocalizationProvider>
 
       <PrepaymentInputElement />
 

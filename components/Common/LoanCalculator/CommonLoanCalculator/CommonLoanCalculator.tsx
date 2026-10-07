@@ -41,6 +41,8 @@ const CommonLoanCalculator = ({ loanCalculatorType, Summary }: Props) => {
     totalPaid,
     roi,
     tenure,
+    startMonth,
+    handleStartMonthChange,
     interestPaid,
     timesPaid,
     emi,
@@ -55,6 +57,7 @@ const CommonLoanCalculator = ({ loanCalculatorType, Summary }: Props) => {
   const { prepaymentsByMonth, hasPrepayments } = usePrepayment({
     prepayments,
     tenure,
+    startMonth,
   });
 
   const {
@@ -66,12 +69,17 @@ const CommonLoanCalculator = ({ loanCalculatorType, Summary }: Props) => {
     totalPrepayments,
     totalPaidActual,
     timesPaidActual,
+    hasManualChanges,
+    overrides,
+    applyMonthChange,
+    clearMonthChange,
   } = useLoanAmortisation(
     loanAmount,
     roi,
     tenure,
     prepaymentsByMonth,
-    hasPrepayments
+    hasPrepayments,
+    startMonth
   );
 
   const handleCalculateBtnClick = useCallback(
@@ -91,6 +99,7 @@ const CommonLoanCalculator = ({ loanCalculatorType, Summary }: Props) => {
         loanAmount={loanAmount}
         roi={roi}
         tenure={tenure}
+        startMonth={startMonth}
         isValidForm={isValidForm}
         minAmount={MIN_LOAN_AMOUNT}
         maxAmount={getLoanMaxByCurrency(currency)}
@@ -103,6 +112,7 @@ const CommonLoanCalculator = ({ loanCalculatorType, Summary }: Props) => {
         handleROIChange={handleROIChange}
         handleTenureYearsChange={handleTenureYearsChange}
         handleTenureMonthsChange={handleTenureMonthsChange}
+        handleStartMonthChange={handleStartMonthChange}
         getLoanAmountScale={getLoanAmountScaleByCurrency(currency)}
         getLoanAmountInverseScale={getLoanAmountInverseScaleByCurrency(
           currency
@@ -114,23 +124,33 @@ const CommonLoanCalculator = ({ loanCalculatorType, Summary }: Props) => {
       loanAmount,
       roi,
       tenure,
+      startMonth,
       isValidForm,
       handleCalculateBtnClick,
       handleLoanAmountChange,
       handleROIChange,
       handleTenureYearsChange,
       handleTenureMonthsChange,
+      handleStartMonthChange,
       currency,
     ]
   );
 
+  /**
+   * The closed-form totals only describe the loan as originally set up. As soon
+   * as a prepayment or a manual change alters the schedule, the summary has to be
+   * read back off the schedule instead, or it would contradict the table.
+   */
+  const useScheduleTotals = hasPrepayments || hasManualChanges;
+
   const summaryLoanProps = {
     hasPrepayments,
-    principalPaid: hasPrepayments ? principalPaidActual : loanAmount,
-    timesMultiplied: hasPrepayments ? timesPaidActual : timesPaid,
-    totalPaid: hasPrepayments ? totalPaidActual : totalPaid,
-    interestPaid: hasPrepayments ? interestPaidActual : interestPaid,
-    prepayments: hasPrepayments ? totalPrepayments : 0,
+    hasManualChanges,
+    principalPaid: useScheduleTotals ? principalPaidActual : loanAmount,
+    timesMultiplied: useScheduleTotals ? timesPaidActual : timesPaid,
+    totalPaid: useScheduleTotals ? totalPaidActual : totalPaid,
+    interestPaid: useScheduleTotals ? interestPaidActual : interestPaid,
+    prepayments: useScheduleTotals ? totalPrepayments : 0,
     starts: monthlyAmortisationData[0]?.year,
     ends: monthlyAmortisationData[monthlyAmortisationData.length - 1]?.year,
     prepaymentSavings: totalPaid - totalPaidActual,
@@ -158,9 +178,13 @@ const CommonLoanCalculator = ({ loanCalculatorType, Summary }: Props) => {
       {isValidForm && resultsReady && (
         <LoanAmortisation
           hasPrepayments={hasPrepayments}
+          hasManualChanges={hasManualChanges}
           amortisationDataYearly={yearlyAmortisationData}
           amortisationDataMonthly={monthlyAmortisationData}
           downloadAmortisation={downloadAmortisation}
+          overrides={overrides}
+          onApplyMonthChange={applyMonthChange}
+          onResetMonthChange={clearMonthChange}
         />
       )}
     </div>

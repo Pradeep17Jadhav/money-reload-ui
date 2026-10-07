@@ -2,7 +2,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LoginPanel from "@/components/LoginPanel/LoginPanel";
 import { useAuth } from "@/contexts/authContext";
-import { INVALID_CREDENTIALS_MESSAGE } from "@/helpers/authErrors";
+import { INVALID_CREDENTIALS_MESSAGE } from "@/helpers/apiErrors";
 import { AuthErrorCode } from "@/types/AuthTypes";
 import { createApiError, createAuthResult, createDeferred } from "@/tests/factories/authFactories";
 

@@ -5,30 +5,16 @@
     margin-left: 8px;
 }
 
-/* Matches .navLink in the navbar: bottom rule, same hover treatment. */
-.barLink {
-    box-sizing: content-box;
-    display: flex;
-    align-items: center;
-    height: 64px;
-    padding: 0 16px;
-    font-size: 0.9em;
-    border-bottom: 2px solid transparent;
-    white-space: nowrap;
-}
-
-.barLink:hover {
-    border-bottom-color: var(--primary);
-    color: var(--primary);
-}
-
-.barLink:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: -2px;
-}
-
+/*
+ * The one call to action in the toolbar for a signed-out visitor. A link, so it
+ * is a real destination for the keyboard and for a middle click, wearing the
+ * primary treatment the button used to have.
+ */
 .barButton {
     box-sizing: content-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     height: 64px;
     padding: 0 20px;
     font-size: 0.9em;
@@ -48,27 +34,4 @@
 .barButton:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: -2px;
-}
-
-.userName {
-    font-size: 0.9em;
-    color: var(--foreground-secondary);
-    padding: 0 8px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 140px;
-}
-
-.avatar {
-    background-color: var(--primary);
-    color: var(--foreground-strongest);
-    font-weight: 700;
-    font-size: 0.8rem;
-}
-
-@media (max-width: 900px) {
-    .userName {
-        display: none;
-    }
 }

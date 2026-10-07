@@ -18,7 +18,7 @@ export type AuthErrorCopy = {
 export const INVALID_CREDENTIALS_MESSAGE =
   "We could not sign you in with that username or email and password. Check the details and try again.";
 
-const GENERIC_MESSAGE = "Something went wrong on our side. Please try again.";
+export const GENERIC_MESSAGE = "Something went wrong on our side. Please try again.";
 
 const BANNER_BY_CODE: Partial<Record<AuthErrorCode, string>> = {
   [AuthErrorCode.INVALID_CREDENTIALS]: INVALID_CREDENTIALS_MESSAGE,
@@ -30,6 +30,16 @@ const BANNER_BY_CODE: Partial<Record<AuthErrorCode, string>> = {
     "Your session was ended. Sign in again to continue.",
   [AuthErrorCode.TOKEN_EXPIRED]: "Your session has expired. Sign in again to continue.",
   [AuthErrorCode.USER_NOT_FOUND]: "We could not find that account. Sign in again to continue.",
+  // A record belonging to another user returns the same 404 as one that does not
+  // exist, so the copy must never imply the record exists elsewhere.
+  [AuthErrorCode.LOAN_NOT_FOUND]:
+    "This loan is no longer available. It may have been deleted.",
+  [AuthErrorCode.INCOME_NOT_FOUND]:
+    "This income entry is no longer available. It may have been deleted.",
+  [AuthErrorCode.EXPENSE_NOT_FOUND]:
+    "This expense is no longer available. It may have been deleted.",
+  [AuthErrorCode.GOAL_NOT_FOUND]:
+    "This goal is no longer available. It may have been deleted.",
   [AuthErrorCode.CONFLICT]:
     "That change conflicts with something we already have. Review your details and try again.",
   [AuthErrorCode.PAYLOAD_TOO_LARGE]:

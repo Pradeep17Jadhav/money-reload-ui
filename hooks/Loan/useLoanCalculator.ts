@@ -1,4 +1,6 @@
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
 import {
   getUpdatedInterestRateWithValidation,
   getUpdatedNumberWithValidation,
@@ -39,6 +41,12 @@ export const useLoanCalculator = ({ loanCalculatorType }: Props) => {
   const [tenure, setTenure] = useState<Tenure>(initialTenure);
   const [interestPaid, setInterestPaid] = useState(0);
   const [timesPaid, setTimesPaid] = useState(0);
+  /**
+   * The month the loan begins. A loan taken out earlier than today still needs a
+   * schedule, so this drives the amortisation, the prepayments and the dates shown
+   * in the summary rather than assuming the current month.
+   */
+  const [startMonth, setStartMonth] = useState<Dayjs>(dayjs().startOf("month"));
 
   const calculateLoan = useCallback(() => {
     const monthlyRate = parseFloat(roi) / 12 / 100;
@@ -160,6 +168,15 @@ export const useLoanCalculator = ({ loanCalculatorType }: Props) => {
     []
   );
 
+  const handleStartMonthChange = useCallback((value: Dayjs | null) => {
+    if (!value) {
+      return;
+    }
+    // Normalised to the first of the month, so a day picked mid-month cannot
+    // shift the schedule by a few weeks.
+    setStartMonth(value.startOf("month"));
+  }, []);
+
   useEffect(() => {
     setRoi(defaultRoi);
     setLoanAmount(defaultLoanAmount);
@@ -193,10 +210,12 @@ export const useLoanCalculator = ({ loanCalculatorType }: Props) => {
     interestPaid,
     timesPaid,
     emi,
+    startMonth,
     calculate,
     handleLoanAmountChange,
     handleROIChange,
     handleTenureYearsChange,
     handleTenureMonthsChange,
+    handleStartMonthChange,
   };
 };

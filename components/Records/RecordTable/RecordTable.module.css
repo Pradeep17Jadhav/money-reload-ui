@@ -1,0 +1,107 @@
+.wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+.table th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--foreground-secondary);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: var(--hover-background);
+}
+
+.numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+.badge {
+    display: inline-block;
+    border-radius: 48px;
+    padding: 3px 12px;
+    font-size: 0.85em;
+    border: 1px solid var(--border-color);
+    color: var(--foreground-secondary);
+    white-space: nowrap;
+}
+
+.badgeSuccess {
+    composes: badge;
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.badgeWarning {
+    composes: badge;
+    border-color: var(--loss);
+    color: var(--loss);
+}
+
+.badgeError {
+    composes: badge;
+    border-color: var(--loss);
+    color: var(--loss);
+}
+
+.badgeNeutral {
+    composes: badge;
+}
+
+.iconButton {
+    color: var(--foreground-secondary);
+}
+
+.iconButton:hover {
+    color: var(--primary);
+}
+
+.muted {
+    color: var(--foreground-caption);
+}
+
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.subText {
+    font-size: 0.9em;
+    color: var(--foreground-caption);
+}
+
+@media (max-width: 900px) {
+    .table {
+        font-size: 0.85em;
+    }
+
+    .table th,
+    .table td {
+        padding: 10px 12px;
+    }
+}

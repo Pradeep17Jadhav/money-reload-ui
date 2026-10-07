@@ -1,0 +1,168 @@
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 24px;
+}
+
+.pageTitle {
+    font-size: 32px;
+}
+
+.pageSubtitle {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--foreground-secondary);
+}
+
+.pageTitle,
+.pageSubtitle {
+    text-align: center;
+}
+
+.identity {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 32px;
+    border-radius: 0.8rem;
+    box-shadow: var(--shadow-primary);
+    background-color: var(--background-secondary);
+    padding: 28px;
+}
+
+.identityText {
+    min-width: 0;
+}
+
+.identityName {
+    font-size: 1.4em;
+    font-weight: 600;
+}
+
+.identityMeta {
+    font-size: 0.9em;
+    color: var(--foreground-secondary);
+    margin-top: 4px;
+    overflow-wrap: anywhere;
+}
+
+.avatar {
+    background-color: var(--primary);
+    color: var(--foreground-strongest);
+    font-weight: 700;
+}
+
+.overviewLoading {
+    padding: 24px 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.tile {
+    border-radius: 0.8rem;
+    box-shadow: var(--shadow-primary);
+    background-color: var(--background-secondary);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.tileLabel {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--foreground-caption);
+}
+
+.tileValue {
+    font-size: 1.35em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    /* Rupee totals can be long; never let them push the tile wider. */
+    overflow-wrap: anywhere;
+}
+
+.tileSub {
+    font-size: 0.85em;
+    color: var(--foreground-secondary);
+}
+
+.positive {
+    color: var(--primary);
+}
+
+.negative {
+    color: var(--loss);
+}
+
+.section {
+    margin-top: 40px;
+}
+
+.sectionTitle {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.sectionSubtitle {
+    font-size: 0.9em;
+    color: var(--foreground-secondary);
+    margin-bottom: 16px;
+}
+
+.links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.link {
+    border-radius: 48px;
+    padding: 10px 20px;
+    font-size: 0.9em;
+    border: 1px solid var(--border-color);
+    color: var(--foreground-secondary);
+}
+
+.link:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.link:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 0 16px;
+    }
+
+    .pageTitle {
+        font-size: 1.5em;
+    }
+
+    .pageSubtitle {
+        font-size: 1em;
+    }
+
+    .identity {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .tileValue {
+        font-size: 1.15em;
+    }
+}

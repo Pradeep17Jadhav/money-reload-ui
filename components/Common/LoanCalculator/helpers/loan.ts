@@ -17,6 +17,10 @@ export const getCellValue = (
   if (col.key === TableColumnKeys.LOAN_PAID_PERCENT) {
     return `${row[col.key as keyof AmortisationRow].toFixed(2)}%`;
   }
+  // A rate is a percentage, not money, so it never goes through `formatAmount`.
+  if (col.key === TableColumnKeys.ROI) {
+    return `${formatRate(row.interestRate)}%`;
+  }
   if (col.key === "year") {
     return getPrintableMonthYear(
       frequency,
@@ -26,6 +30,10 @@ export const getCellValue = (
 
   return row[col.key as keyof AmortisationRow];
 };
+
+/** Renders a rate with at most two decimals, dropping trailing zeros. */
+export const formatRate = (rate: number): string =>
+  rate.toLocaleString("en-US", { maximumFractionDigits: 2 });
 
 /**
  * Converts from YYYYMM i.e. 202503 to March 2025

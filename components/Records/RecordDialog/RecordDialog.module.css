@@ -1,0 +1,80 @@
+.dialogTitle {
+    font-weight: 600;
+}
+
+.dialogBody {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 8px;
+}
+
+.banner {
+    border-radius: 0.8rem;
+    padding: 12px 16px;
+    font-size: 0.9em;
+    line-height: 1.5;
+    color: var(--loss);
+    background-color: color-mix(in srgb, var(--loss) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--loss) 40%, transparent);
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 8px 24px 20px;
+}
+
+.primaryButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 12px 32px;
+    border-radius: 48px;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--foreground-strongest);
+}
+
+.primaryButton:hover:not(:disabled) {
+    background-color: var(--primary-light);
+    border-color: var(--primary-light);
+}
+
+.primaryButton:disabled {
+    cursor: not-allowed;
+    border-color: var(--border-color);
+    background: transparent;
+    color: var(--foreground-caption);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.secondaryButton {
+    font-size: 0.9em;
+    cursor: pointer;
+    padding: 12px 24px;
+    border-radius: 48px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--foreground-secondary);
+}
+
+.secondaryButton:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.secondaryButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}

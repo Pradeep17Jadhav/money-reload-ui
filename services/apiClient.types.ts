@@ -21,7 +21,7 @@ export type ApiErrorEnvelope = {
 
 export type ApiEnvelope<TData> = ApiSuccessEnvelope<TData> | ApiErrorEnvelope;
 
-export type AuthRequestMethod = "GET" | "POST";
+export type AuthRequestMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 export type AuthRequestOptions = {
   method?: AuthRequestMethod;

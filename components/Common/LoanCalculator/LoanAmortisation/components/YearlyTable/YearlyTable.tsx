@@ -1,4 +1,5 @@
 import { AmortisationRow, TableColumns } from "@/types/Loan/LoanTypes";
+import type { AmortisationOverrides } from "@/types/Loan/LoanTypes";
 import { Table } from "@mui/material";
 import YearlyTableHeader from "../YearlyTableHeader/YearlyTableHeader";
 import YearlyTableBody from "../YearlyTableBody/YearlyTableBody";
@@ -11,6 +12,9 @@ type Props = {
   amortisationDataMonthly: AmortisationRow[];
   columns: TableColumns;
   toggleRow: (year: number) => void;
+  overrides: AmortisationOverrides;
+  selectedMonthIndex: number | null;
+  onSelectMonth: (monthIndex: number) => void;
 };
 
 const YearlyTable = ({
@@ -19,6 +23,9 @@ const YearlyTable = ({
   amortisationDataMonthly,
   columns,
   toggleRow,
+  overrides,
+  selectedMonthIndex,
+  onSelectMonth,
 }: Props) => {
   return (
     <Table
@@ -36,6 +43,9 @@ const YearlyTable = ({
         amortisationDataMonthly={amortisationDataMonthly}
         columns={columns}
         toggleRow={toggleRow}
+        overrides={overrides}
+        selectedMonthIndex={selectedMonthIndex}
+        onSelectMonth={onSelectMonth}
       />
     </Table>
   );

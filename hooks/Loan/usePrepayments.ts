@@ -18,12 +18,24 @@ export type Prepayment = {
   interval: PrepaymentInterval;
 };
 
+/** How far apart each interval falls. A one-time prepayment happens once. */
+const MONTHS_PER_INTERVAL: Record<PrepaymentInterval, number> = {
+  [PrepaymentInterval.ONE_TIME]: 0,
+  [PrepaymentInterval.MONTHLY]: 1,
+  [PrepaymentInterval.QUARTERLY]: 3,
+  [PrepaymentInterval.HALF_ANNUALLY]: 6,
+  [PrepaymentInterval.ANNUALLY]: 12,
+};
+
 export const usePrepayment = ({
   prepayments,
   tenure,
+  startMonth,
 }: {
   prepayments: Prepayment[];
   tenure: Tenure;
+  /** The month the loan begins, which is where counting starts. */
+  startMonth: Dayjs;
 }) => {
   const [prepaymentsByMonth, setPrepaymentsByMonth] =
     useState<PrepaymentsByMonth>({});
@@ -49,36 +61,53 @@ export const usePrepayment = ({
 
   useEffect(() => {
     const newPrepayments: PrepaymentsByMonth = {};
+
+    if (!tenure.years && !tenure.months) {
+      setPrepaymentsByMonth(newPrepayments);
+      setHasPrepayments(false);
+      return;
+    }
+
+    const loanStart = startMonth.startOf("month");
+    /*
+     * The schedule runs from the start month for exactly the number of
+     * instalments in the tenure, so the last month that can carry a prepayment is
+     * the month of the final instalment. Counting one month beyond it would put a
+     * prepayment in a month the schedule has no row for.
+     */
+    const loanEnd = loanStart.add(tenure.years * 12 + tenure.months - 1, "month");
+
     prepayments.forEach(({ startDate, amount, interval }) => {
-      if (!tenure.years && !tenure.months && !tenure.days) {
+      const step = MONTHS_PER_INTERVAL[interval];
+
+      let cursor = startDate.startOf("month");
+
+      // A one-time prepay has no interval to advance by, so it is judged purely
+      // on whether it lands inside the loan.
+      if (step === 0) {
+        if (!cursor.isBefore(loanStart) && !cursor.isAfter(loanEnd)) {
+          const key = cursor.format("YYYYMM");
+          newPrepayments[key] = (newPrepayments[key] || 0) + amount;
+        }
         return;
       }
+
       let remainingIterations = getRemainingIterations(interval);
-      let count = 0;
-      while (
-        (startDate.isAfter(dayjs()) || startDate.isSame(dayjs(), "month")) &&
-        remainingIterations
-      ) {
-        count += 1;
-        const key = startDate.format("YYYYMM");
-        console.log(key, count);
+
+      /*
+       * Occurrences before the loan began are skipped rather than counted, and
+       * without consuming the iteration budget: a monthly prepayment that has
+       * been running for years still has to cover every month of *this* loan.
+       */
+      while (cursor.isBefore(loanStart)) {
+        cursor = cursor.add(step, "month");
+      }
+
+      while (!cursor.isAfter(loanEnd) && remainingIterations > 0) {
+        const key = cursor.format("YYYYMM");
         newPrepayments[key] = (newPrepayments[key] || 0) + amount;
         remainingIterations -= 1;
-
-        switch (interval) {
-          case PrepaymentInterval.MONTHLY:
-            startDate = startDate.add(1, "month");
-            break;
-          case PrepaymentInterval.QUARTERLY:
-            startDate = startDate.add(3, "month");
-            break;
-          case PrepaymentInterval.HALF_ANNUALLY:
-            startDate = startDate.add(6, "month");
-            break;
-          case PrepaymentInterval.ANNUALLY:
-            startDate = startDate.add(12, "month");
-            break;
-        }
+        cursor = cursor.add(step, "month");
       }
     });
 
@@ -89,7 +118,7 @@ export const usePrepayment = ({
   }, [
     getRemainingIterations,
     prepayments,
-    tenure.days,
+    startMonth,
     tenure.months,
     tenure.years,
   ]);

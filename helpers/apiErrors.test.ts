@@ -4,7 +4,7 @@ import {
   getAuthErrorCopy,
   getRateLimitMessage,
   getSessionRestoreMessage,
-} from "@/helpers/authErrors";
+} from "@/helpers/apiErrors";
 import { AuthErrorCode } from "@/types/AuthTypes";
 import { createApiError } from "@/tests/factories/authFactories";
 

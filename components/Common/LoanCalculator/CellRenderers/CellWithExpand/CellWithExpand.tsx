@@ -1,4 +1,4 @@
-import { IconButton, SxProps, TableCell, Theme } from "@mui/material";
+import { SxProps, TableCell, Theme } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { YEAR_COLUMN_WIDTH } from "../../constants";
@@ -9,19 +9,18 @@ type Props = {
   value: string | number;
   sx?: SxProps<Theme>;
   align?: "center" | "left" | "right" | "inherit" | "justify";
-  onToggle: (year: number) => void;
   isExpanded: boolean;
-  toggleValue: number;
   key: string;
 };
 
-const CellWithExpand = ({
-  value,
-  isExpanded,
-  onToggle,
-  toggleValue,
-  align,
-}: Props) => {
+/**
+ * The year cell, with a chevron showing whether its months are showing.
+ *
+ * The chevron is a plain indicator rather than a button: the whole row is the
+ * control, and nesting a focusable button inside a focusable row would put two
+ * stops for one action on the tab order.
+ */
+const CellWithExpand = ({ value, isExpanded, align }: Props) => {
   return (
     <TableCell
       sx={{
@@ -31,9 +30,9 @@ const CellWithExpand = ({
       align={align}
     >
       <div className={styles.renderer}>
-        <IconButton size="small" onClick={() => onToggle(toggleValue)}>
+        <span className={styles.chevron} aria-hidden="true">
           {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-        </IconButton>
+        </span>
         {value}
       </div>
     </TableCell>
