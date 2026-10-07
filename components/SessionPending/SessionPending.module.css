@@ -1,0 +1,21 @@
+.pending {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-height: 320px;
+    padding: 48px 24px;
+    color: var(--foreground-secondary);
+}
+
+.pendingText {
+    font-size: 0.9em;
+}
+
+@media (max-width: 600px) {
+    .pending {
+        min-height: 240px;
+        padding: 32px 16px;
+    }
+}

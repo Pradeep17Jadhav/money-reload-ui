@@ -1,0 +1,148 @@
+.page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    padding: 48px 24px 24px;
+}
+
+/*
+ * The same surface treatment as every other card in the app: elevated, rounded,
+ * separated by tone rather than by a heavy border. The hover gradient and
+ * `user-select: none` that `Section` adds are left off deliberately, because a
+ * form has to stay selectable and still.
+ */
+.panel {
+    width: 100%;
+    max-width: 480px;
+    border-radius: 0.8rem;
+    box-shadow: var(--shadow-primary);
+    background-color: var(--background-secondary);
+    padding: 40px;
+}
+
+.header {
+    margin-bottom: 32px;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--foreground-secondary);
+    text-align: center;
+    margin-top: 8px;
+}
+
+.banner {
+    border-radius: 0.8rem;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    font-size: 0.9em;
+    line-height: 1.5;
+    color: var(--loss);
+    background-color: color-mix(in srgb, var(--loss) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--loss) 40%, transparent);
+}
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.submit {
+    margin-top: 28px;
+}
+
+/*
+ * One primary action per screen. Pill-shaped, like every other button here, with
+ * an honest disabled state that also survives the in-flight request.
+ */
+.submitButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    font-size: 1em;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 14px 32px;
+    border-radius: 48px;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--foreground-strongest);
+    transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out;
+}
+
+.submitButton:hover:not(:disabled) {
+    background-color: var(--primary-light);
+    border-color: var(--primary-light);
+}
+
+.submitButton:disabled {
+    cursor: not-allowed;
+    border-color: var(--border-color);
+    background-color: transparent;
+    color: var(--foreground-caption);
+}
+
+/*
+ * Never removed outright: the ring is the visible focus indicator, and the
+ * border-colour change alone is not enough on a transparent button.
+ */
+.submitButton:focus-visible,
+.switchLink:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.spinner {
+    color: inherit;
+}
+
+.switch {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 28px;
+    font-size: 0.9em;
+    color: var(--foreground-secondary);
+}
+
+.switchLink {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.switchLink:hover {
+    color: var(--primary-light);
+}
+
+@media (max-width: 600px) {
+    .page {
+        padding: 24px 16px 16px;
+    }
+
+    .panel {
+        padding: 24px 20px;
+    }
+
+    .title {
+        font-size: 1.5em;
+    }
+
+    .subtitle {
+        font-size: 1em;
+    }
+}

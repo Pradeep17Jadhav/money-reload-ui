@@ -1,0 +1,74 @@
+.authControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+}
+
+/* Matches .navLink in the navbar: bottom rule, same hover treatment. */
+.barLink {
+    box-sizing: content-box;
+    display: flex;
+    align-items: center;
+    height: 64px;
+    padding: 0 16px;
+    font-size: 0.9em;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.barLink:hover {
+    border-bottom-color: var(--primary);
+    color: var(--primary);
+}
+
+.barLink:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}
+
+.barButton {
+    box-sizing: content-box;
+    height: 64px;
+    padding: 0 20px;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    border-bottom: 2px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+.barButton:hover {
+    background: var(--hover-background);
+}
+
+.barButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}
+
+.userName {
+    font-size: 0.9em;
+    color: var(--foreground-secondary);
+    padding: 0 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.avatar {
+    background-color: var(--primary);
+    color: var(--foreground-strongest);
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+    .userName {
+        display: none;
+    }
+}

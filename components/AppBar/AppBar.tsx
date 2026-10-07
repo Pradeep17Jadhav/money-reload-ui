@@ -18,6 +18,7 @@ import Link from "next/link";
 import Logo from "../Logo/Logo";
 import { PATHS } from "@/constants/path";
 import CurrencySelector from "../CurrencySelector/CurrencySelector";
+import AuthMenu from "../AuthMenu/AuthMenu";
 import { useCurrency } from "@/contexts/currency";
 import { AnalyticsEventType, trackEvent } from "@/helpers/analytics";
 
@@ -157,6 +158,7 @@ const AppBar = () => {
                 </MenuItem>
               ) : null
             )}
+            <AuthMenu variant="menu" onNavigate={handleCloseNavMenu("")} />
           </Menu>
         </Box>
 
@@ -213,6 +215,13 @@ const AppBar = () => {
               </Tooltip>
             ) : null;
           })}
+        </Box>
+
+        <Box
+          className={styles.navLinkContainer}
+          sx={{ flexGrow: 0, display: { xs: "none", md: "flex" } }}
+        >
+          <AuthMenu variant="bar" />
         </Box>
 
         <CurrencySelector />

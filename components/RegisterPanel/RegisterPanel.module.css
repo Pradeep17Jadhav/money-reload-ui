@@ -1,0 +1,61 @@
+.preview {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+    padding: 16px;
+    border-radius: 0.8rem;
+    background-color: var(--background-ternary);
+}
+
+.previewText {
+    font-size: 0.9em;
+    color: var(--foreground-secondary);
+}
+
+.previewName {
+    color: var(--foreground);
+    font-weight: 600;
+    display: block;
+    margin-top: 2px;
+}
+
+.nameRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.85em;
+    line-height: 1.5;
+    color: var(--foreground-secondary);
+}
+
+.consentCheckbox {
+    color: var(--foreground-secondary);
+    padding: 2px;
+}
+
+.consentError {
+    composes: consentMessage;
+    color: var(--loss);
+}
+
+.consentMessage {
+    min-height: 20px;
+    line-height: 20px;
+    margin-top: 4px;
+    font-size: 0.8em;
+}
+
+@media (max-width: 600px) {
+    .nameRow {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
