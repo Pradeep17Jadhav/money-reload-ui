@@ -26,16 +26,24 @@ export const formatPaise = (paise: number | null | undefined): string => {
 export const paiseToRupees = (paise: number): number => paise / PAISE_PER_RUPEE;
 
 /**
- * A percentage is not money. Rendered with up to two decimals and a `%`, and
- * deliberately never passed through the paise conversion. Trailing zeros are
- * dropped so a whole rate reads `8%` rather than `8.00%`.
+ * A percentage is not money. Rendered with exactly two decimals and a `%`, and deliberately
+ * never passed through the paise conversion.
+ *
+ * The trailing zeros are kept, which is the opposite of what this used to do. A rate is quoted
+ * to two places, so a column showing `8%` beside `8.75%` beside `8.5%` reads as three different
+ * precisions rather than as one — and `8.5%` next to `8.50%` invites the reader to wonder
+ * whether one of them was rounded. Two places everywhere also means a rate can be typed back in
+ * as it was shown.
  */
 export const formatPercent = (value: number | null | undefined): string => {
   if (value === null || value === undefined) {
     return "-";
   }
 
-  return `${value.toLocaleString("en-IN", { maximumFractionDigits: 2 })}%`;
+  return `${value.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}%`;
 };
 
 const RUPEE_INPUT_PATTERN = /^\d+(\.\d{1,2})?$/;

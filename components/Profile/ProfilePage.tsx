@@ -13,24 +13,31 @@ import { getCountryName } from "@/helpers/countries";
 import { formatPaise } from "@/helpers/money";
 import { formatTimestamp, humaniseEnumValue } from "@/helpers/dates";
 import { NO_FILTERS, useRecordSummary } from "@/hooks/Finance/useRecordSummary";
+import { useLoanTotals } from "@/components/Loans/useLoanTotals";
+import type { LoanTotals } from "@/components/Loans/useLoanTotals";
 import {
   getExpensesSummary,
   getGoalsSummary,
   getIncomesSummary,
-  getLoansSummary,
 } from "@/services/finance/records";
 import { PATHS } from "@/constants/path";
 import type {
   ExpensesSummary,
   GoalsSummary,
   IncomesSummary,
-  LoansSummary,
 } from "@/types/FinanceTypes";
 
 import styles from "./Profile.module.css";
 
 type OverviewState = {
-  loans: LoansSummary | null;
+  /**
+   * The loans overview, summed in the browser rather than read from the API's aggregate.
+   *
+   * A loan imported from a saved calculation stores no principal and no EMI, so the server
+   * total omits every one of them. Summing the loans here — each import resolved against its
+   * calculation first — is what puts them back in.
+   */
+  loans: LoanTotals | null;
   incomes: IncomesSummary | null;
   expenses: ExpensesSummary | null;
   goals: GoalsSummary | null;
@@ -75,15 +82,27 @@ const TILES: (overview: OverviewState) => {
     },
     {
       label: "Total borrowed",
-      value: formatPaise(overview.loans ? overview.loans.totalPrincipal : null),
+      value: overview.loans ? formatPaise(overview.loans.totalPrincipal) : formatPaise(null),
       sub: overview.loans
-        ? `${overview.loans.activeLoans} active of ${overview.loans.totalLoans}`
+        ? [
+            `${overview.loans.activeLoans} active of ${overview.loans.totalLoans}`,
+            // Said when there is something to say: an import that could not be read is
+            // missing from the total, and a total quietly short of the real one is worse
+            // than one that admits it.
+            overview.loans.unresolved > 0
+              ? `${overview.loans.unresolved} could not be read`
+              : undefined,
+          ]
+            .filter(Boolean)
+            .join(" · ")
         : undefined,
     },
     {
       label: "Monthly EMI",
-      value: formatPaise(overview.loans ? overview.loans.totalEmi : null),
-      sub: "across all active loans",
+      value: overview.loans ? formatPaise(overview.loans.totalEmi) : formatPaise(null),
+      sub: overview.loans
+        ? `across all active loans, at ${new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" })}`
+        : "across all active loans",
     },
     {
       label: "Goal progress",
@@ -109,22 +128,27 @@ const TILES: (overview: OverviewState) => {
 const ProfilePage = () => {
   const { user, status } = useAuth();
 
-  const loans = useRecordSummary(getLoansSummary, NO_FILTERS);
+  const loans = useLoanTotals();
   const incomes = useRecordSummary(getIncomesSummary, NO_FILTERS);
   const expenses = useRecordSummary(getExpensesSummary, NO_FILTERS);
   const goals = useRecordSummary(getGoalsSummary, NO_FILTERS);
 
   const isLoading =
-    loans.isLoading || incomes.isLoading || expenses.isLoading || goals.isLoading;
+    loans.isLoading ||
+    incomes.isLoading ||
+    expenses.isLoading ||
+    goals.isLoading;
 
   const overview = useMemo<OverviewState>(
     () => ({
-      loans: loans.summary,
+      // Null while unread, so the tiles show a dash rather than a confident zero that
+      // would then be corrected a moment later.
+      loans: loans.isLoading && loans.totalLoans === 0 ? null : loans,
       incomes: incomes.summary,
       expenses: expenses.summary,
       goals: goals.summary,
     }),
-    [expenses.summary, goals.summary, incomes.summary, loans.summary]
+    [expenses.summary, goals.summary, incomes.summary, loans]
   );
 
   const tiles = useMemo(() => TILES(overview), [overview]);

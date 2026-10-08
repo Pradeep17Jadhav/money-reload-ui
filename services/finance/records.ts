@@ -6,6 +6,7 @@ import type {
   GoalsSummary,
   Income,
   IncomesSummary,
+  Investment,
   ListQuery,
   ListResponse,
   Loan,
@@ -36,6 +37,7 @@ export const RECORD_PATHS = {
   incomes: "/incomes",
   expenses: "/expenses",
   goals: "/goals",
+  investments: "/investments",
 } as const;
 
 export type ResourceKey = keyof typeof RECORD_PATHS;
@@ -133,6 +135,34 @@ export const compactPayload = <TPayload extends object>(payload: TPayload): TPay
  */
 export const listLoans = (request: AuthedRequest, query?: ListQuery) =>
   listRecords<Loan>(request, "loans", query);
+
+export const listInvestments = (request: AuthedRequest, query?: ListQuery) =>
+  listRecords<Investment>(request, "investments", query);
+
+export const createInvestment = (
+  request: AuthedRequest,
+  payload: Record<string, unknown>
+) =>
+  createRecord<Investment, Record<string, unknown>>(
+    request,
+    "investments",
+    compactPayload(payload)
+  );
+
+export const updateInvestment = (
+  request: AuthedRequest,
+  id: string,
+  payload: Record<string, unknown>
+) =>
+  updateRecord<Investment, Record<string, unknown>>(
+    request,
+    "investments",
+    id,
+    compactPayload(payload)
+  );
+
+export const deleteInvestment = (request: AuthedRequest, id: string) =>
+  removeRecord(request, "investments", id);
 
 export const getLoansSummary = (request: AuthedRequest, query?: ListQuery) =>
   getSummary<LoansSummary>(request, "loans", query);

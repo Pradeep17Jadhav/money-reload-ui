@@ -83,6 +83,9 @@ export const GOAL_PRIORITY_TONE: Record<string, "success" | "warning" | "error" 
 export const LOAN_SORTS = [
   "createdAt",
   "updatedAt",
+  // Because it is the first column and the thing a user scans a list of loans for, it is worth
+  // offering alphabetically. `EXPENSE_SORTS` already sorts by title for the same reason.
+  "title",
   "principal",
   "emiAmount",
   "startDate",

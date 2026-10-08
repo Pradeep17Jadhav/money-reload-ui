@@ -24,7 +24,32 @@ export const isFieldVisible = (field: FieldConfig, values: FormValues): boolean 
     return true;
   }
 
-  return values[field.visibleWhen.name] === field.visibleWhen.equals;
+  const wanted = field.visibleWhen.equals;
+
+  /*
+   * A list means "any of these". Used where one field belongs to a group of values — an
+   * investment's rate of return applies to every fixed-return type and to none of the others —
+   * so the field is declared once rather than repeated per type and left to drift apart.
+   */
+  return Array.isArray(wanted)
+    ? wanted.includes(values[field.visibleWhen.name] as string | boolean)
+    : values[field.visibleWhen.name] === wanted;
+};
+
+/**
+ * Whether a field can be set right now.
+ *
+ * Independent of {@link isFieldVisible}: a field can be on screen and still have nothing to
+ * work from. An end date is the case in point — it is shown as soon as the holding has a term,
+ * but stays disabled until there is a start date to count forward from, because a date with no
+ * starting point is not a term.
+ */
+export const isFieldEnabled = (field: FieldConfig, values: FormValues): boolean => {
+  if (!field.enabledWhen) {
+    return true;
+  }
+
+  return getStringValue(values, field.enabledWhen.name).trim().length > 0;
 };
 
 /**
@@ -169,6 +194,11 @@ export const buildPayload = (
   const payload: Record<string, unknown> = {};
 
   for (const field of getVisibleFields(fields, values)) {
+    // A form-only field drives others and is worked out from them; it is not in the contract.
+    if (field.formOnly) {
+      continue;
+    }
+
     if (field.kind === "switch") {
       payload[field.name] = values[field.name] === true;
       continue;
@@ -193,6 +223,16 @@ export const buildPayload = (
       case "number":
       case "percent":
         payload[field.name] = Number(raw);
+        break;
+
+      case "select":
+        /*
+         * A dropdown carries strings because that is all an option can hold, so a select whose
+         * values are numbers on the wire has to be converted back. Without this, picking
+         * "Quarterly" sent `"4"` to an API expecting a number and was rejected as
+         * `expected number, received string`.
+         */
+        payload[field.name] = field.numeric ? Number(raw) : raw.trim();
         break;
 
       case "date":
@@ -242,6 +282,11 @@ export const buildUpdatePayload = (
   );
 
   for (const field of fields) {
+    // A form-only field is not in the contract at all, so there is nothing to clear.
+    if (field.formOnly) {
+      continue;
+    }
+
     if (field.kind === "switch" || isFieldVisible(field, current)) {
       continue;
     }

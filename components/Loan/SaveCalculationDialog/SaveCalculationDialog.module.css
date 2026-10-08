@@ -1,0 +1,49 @@
+.field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 8px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 8px 24px 20px;
+}
+
+.primaryButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 12px 32px;
+    border-radius: 48px;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--foreground-strongest);
+}
+
+.primaryButton:disabled {
+    cursor: not-allowed;
+    border-color: var(--border-color);
+    background: transparent;
+    color: var(--foreground-caption);
+}
+
+.secondaryButton {
+    font-size: 0.9em;
+    cursor: pointer;
+    padding: 12px 24px;
+    border-radius: 48px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--foreground-secondary);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}

@@ -21,12 +21,24 @@ describe("money", () => {
   describe("percentages are not money", () => {
     it("never divides a rate by 100", () => {
       expect(formatPercent(8.75)).toBe("8.75%");
-      expect(formatPercent(7.5)).toBe("7.5%");
+      // Kept as two places, where the old formatter dropped the trailing zero.
+      expect(formatPercent(7.5)).toBe("7.50%");
     });
 
-    it("drops trailing zeros so a whole rate reads cleanly", () => {
-      expect(formatPercent(8)).toBe("8%");
-      expect(formatPercent(0)).toBe("0%");
+    it("shows two places on a whole rate, because a rate is quoted to two", () => {
+      /*
+       * The opposite of what this used to do. A column reading `8%`, `8.5%` and `8.75%` reads
+       * as three precisions rather than as one — and `8.5%` beside `8.50%` invites the reader
+       * to wonder which of them was rounded.
+       */
+      expect(formatPercent(8)).toBe("8.00%");
+      expect(formatPercent(6)).toBe("6.00%");
+      expect(formatPercent(6.5)).toBe("6.50%");
+      expect(formatPercent(0)).toBe("0.00%");
+    });
+
+    it("keeps a rate above one hundred readable rather than clipping it", () => {
+      expect(formatPercent(1234.5)).toBe("1,234.50%");
     });
   });
 

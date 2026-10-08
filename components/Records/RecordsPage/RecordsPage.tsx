@@ -23,6 +23,29 @@ export type RecordsPageProps<TItem> = {
   title: string;
   subtitle: string;
   addLabel: string;
+  /**
+   * A second way in, for a screen that has one. Rendered beside the primary action and
+   * omitted when absent, so a resource that only offers "add" is left unchanged.
+   */
+  secondaryAction?: { label: string; onClick: () => void };
+  /**
+   * Takes over editing one row, instead of the generic dialog.
+   *
+   * For a record whose fields are not its own — a loan instalment expense carries no amount,
+   * because the loan's amortisation owns that. The generic form would offer the field and then
+   * have the API refuse it, so the screen is given a say in how a row is edited.
+   *
+   * Returns `true` if the row was claimed. Anything else falls through to the usual dialog, so
+   * a screen can claim only the rows that need it and leave the rest alone.
+   */
+  onRowEdit?: (item: TItem) => boolean;
+  /**
+   * Rendered between the toolbar and the table.
+   *
+   * For a screen's own control over what the table contains — `/investments` switching between
+   * one kind of holding and another. Omitted for every other resource, so nothing moves.
+   */
+  tableHeader?: React.ReactNode;
   submitLabel: string;
   editSubmitLabel: string;
   emptyMessage: string;
@@ -50,6 +73,9 @@ const RecordsPage = <TItem,>({
   title,
   subtitle,
   addLabel,
+  secondaryAction,
+  onRowEdit,
+  tableHeader,
   submitLabel,
   editSubmitLabel,
   emptyMessage,
@@ -104,9 +130,19 @@ const RecordsPage = <TItem,>({
             onReset={collection.resetFilters}
             onAdd={screen.openCreate}
             addLabel={addLabel}
+            secondaryAction={secondaryAction}
           />
 
           <div className={styles.divider} />
+
+          {/*
+           * Between the toolbar and the table, because that is where a control over *what the
+           * table is showing* belongs. Above the heading it would read as part of the page's
+           * furniture; inside the toolbar it would sit among filters that do something
+           * different — narrowing by search or sort leaves the list alone, whereas these tabs
+           * decide what is in it at all.
+           */}
+          {tableHeader}
 
           {error && (
             <p className={styles.listBanner} role="alert" data-testid="records-error">
@@ -125,7 +161,17 @@ const RecordsPage = <TItem,>({
                 columns={columns}
                 items={items}
                 getId={screen.getId}
-                onEdit={screen.openEdit}
+                onEdit={
+                  // A row the screen claims for itself; every other row falls through to the
+                  // generic dialog. Returning `false` is how a screen says "not this one".
+                  onRowEdit
+                    ? (item: TItem) => {
+                        if (!onRowEdit(item)) {
+                          screen.openEdit(item);
+                        }
+                      }
+                    : screen.openEdit
+                }
                 onDelete={screen.askDelete}
                 emptyMessage={emptyMessage}
                 caption={caption}

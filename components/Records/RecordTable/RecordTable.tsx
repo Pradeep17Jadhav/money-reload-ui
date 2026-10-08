@@ -83,7 +83,16 @@ const RecordTable = <TItem,>({
   return (
     <div className={styles.wrapper}>
       <table className={styles.table} data-testid="records-table">
-        <caption className={styles.muted}>{caption}</caption>
+        {/*
+         * Sighted users get nothing here. It was the resource name in grey text above the
+         * headers, which repeated what the page already says, and it cost a line of the table's
+         * height for no information.
+         *
+         * Kept rather than deleted, because a caption is the table's accessible name: remove it
+         * and a screen reader announces an unlabelled table, and nothing else on these screens
+         * names it either. Hidden rather than shown so both audiences are served by one element.
+         */}
+        <caption className={styles.visuallyHidden}>{caption}</caption>
         <thead>
           <tr>
             {columns.map((column) => (

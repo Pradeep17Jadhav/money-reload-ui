@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AppBar from "@/components/AppBar/AppBar";
 import { useAuth } from "@/contexts/authContext";
@@ -164,6 +164,83 @@ describe("AppBar", () => {
 
       expect(signOut).toHaveBeenCalledTimes(1);
       expect(push).toHaveBeenCalledWith("/");
+    });
+  });
+
+  describe("account pages", () => {
+    it("lists the signed-in user's own pages on the toolbar", () => {
+      setAuth("authenticated");
+      render(<AppBar />);
+
+      expect(toolbarLinks()).toEqual(
+        expect.arrayContaining([
+          "/loans",
+          "/income",
+          "/expenses",
+          "/goals",
+          "/profile",
+        ])
+      );
+    });
+
+    it("places them after Tools, so the tools come first", () => {
+      setAuth("authenticated");
+      render(<AppBar />);
+
+      const hrefs = toolbarLinks();
+      const firstAccountLink = hrefs.indexOf("/profile");
+
+      expect(firstAccountLink).toBeGreaterThan(0);
+      expect(hrefs.slice(firstAccountLink)).toEqual([
+        "/profile",
+        "/loans",
+        "/income",
+        "/expenses",
+        "/investments",
+        "/goals",
+      ]);
+    });
+
+    it("hides every one of them while signed out", () => {
+      setAuth("unauthenticated");
+      render(<AppBar />);
+
+      for (const path of ["/loans", "/income", "/expenses", "/goals", "/profile"]) {
+        expect(toolbarLinks()).not.toContain(path);
+      }
+    });
+
+    it("keeps them out of the Tools menu, so no destination is listed twice", async () => {
+      const user = userEvent.setup();
+      setAuth("authenticated");
+      render(<AppBar />);
+
+      await user.hover(toolsTrigger());
+
+      /*
+       * Scoped to the Tools panel. The account links sit on the toolbar either way, so
+       * asking about every link on the page would always find them and prove nothing.
+       */
+      const panel = toolsTrigger().closest("div");
+      const toolsPanelHrefs = within(panel as HTMLElement)
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href"));
+
+      expect(toolsPanelHrefs).toContain("/calculators");
+      for (const path of ["/loans", "/income", "/expenses", "/goals", "/profile"]) {
+        expect(toolsPanelHrefs).not.toContain(path);
+      }
+    });
+
+    it("does not treat a restored session as signed in yet", () => {
+      // `initialising` means the stored token has not been verified. Showing the
+      // account links here would advertise pages that are about to redirect.
+      setAuth("initialising");
+      render(<AppBar />);
+
+      for (const path of ["/loans", "/income", "/expenses", "/goals", "/profile"]) {
+        expect(toolbarLinks()).not.toContain(path);
+      }
     });
   });
 });

@@ -35,6 +35,30 @@ describe("finance records service", () => {
       expect(calls[0].method).toBeUndefined();
     });
 
+    it("asks for specific ids on the collection path", async () => {
+      const { request, calls } = createRequest();
+
+      /*
+       * Regression guard. A caller once assembled this URL by hand and dropped the leading
+       * slash, so every request resolved against the wrong base and the expenses table lost
+       * the amount and category of every linked expense — with no error surfaced anywhere.
+       * The path belongs to `listRecords` alone; nothing else may spell it out.
+       */
+      await listLoans(request, { ids: ["a", "b"], limit: 2 });
+
+      expect(calls[0].path).toBe("/loans?ids=a&ids=b&limit=2");
+    });
+
+    it("leaves the ids out entirely when none are asked for", async () => {
+      const { request, calls } = createRequest();
+
+      await listLoans(request, { ids: [], limit: 20 });
+
+      // An empty filter would ask for loans whose id is in no set, which is not "all of them"
+      // to the reader and is not what the caller meant.
+      expect(calls[0].path).toBe("/loans?limit=20");
+    });
+
     it("uses the plural path each resource is mounted on", async () => {
       const { request, calls } = createRequest();
 

@@ -1,9 +1,0 @@
-# *
-User-agent: *
-Allow: /
-
-# Host
-Host: https://moneyreload.com
-
-# Sitemaps
-Sitemap: https://moneyreload.com/sitemap.xml

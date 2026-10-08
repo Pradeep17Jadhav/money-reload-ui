@@ -86,6 +86,146 @@
     min-width: 200px;
 }
 
+/*
+ * The filter button, at the extreme left of the toolbar. Square-ish rather than a pill
+ * because it is an icon and not a labelled action, and the same height as the controls beside
+ * it so the row does not step.
+ */
+.filterButton,
+.filterButtonActive {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--foreground-secondary);
+    transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease;
+}
+
+.filterButton:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/*
+ * Filled while anything is chosen. Not decoration: with the selects hidden behind the popover,
+ * this is the only thing telling the user the list is not everything they have.
+ */
+.filterButtonActive,
+.filterButtonActive:hover {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--foreground-strongest);
+}
+
+.filterButton:focus-visible,
+.filterButtonActive:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.filterCount {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    font-weight: 700;
+    background: var(--foreground-strongest);
+    color: var(--background-primary);
+}
+
+/* Header, body and footer of the panel, so the scroll is bounded to the body alone. */
+.popoverHeader {
+    flex: 0 0 auto;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.popoverBody {
+    flex: 1 1 auto;
+    /* The panel is fixed-height on purpose: search, a date range, the sort and every filter is a
+       tall stack, and a panel that grew to fit all of them would run off the bottom of a laptop
+       screen. Scrolling the body keeps the reset in the footer reachable. */
+    max-height: 360px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 2px;
+}
+
+.popoverFooter {
+    flex: 0 0 auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.popoverTitle {
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--foreground-caption);
+}
+
+/*
+ * A full-width column inside the panel, so an option label has room to be read.
+ *
+ * The `min-width` the toolbar controls carried is deliberately absent: it exists to stop a flex
+ * child collapsing on the toolbar, and here the parent is already a column of a fixed width.
+ */
+.popoverControl {
+    display: flex;
+    flex-direction: column;
+}
+
+/* The date range reads as one range, so it sits side by side. */
+.popoverDates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.popoverClear {
+    font-size: 0.8em;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 48px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--foreground-secondary);
+}
+
+.popoverClear:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.popoverClear:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.popoverClear:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
 .footer {
     display: flex;
     align-items: center;

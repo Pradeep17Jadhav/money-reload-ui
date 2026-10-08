@@ -16,7 +16,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import Link from "next/link";
 import Logo from "../Logo/Logo";
-import { PATHS } from "@/constants/path";
+import { PATHS, PRIVATE_PAGES } from "@/constants/path";
 import CurrencySelector from "../CurrencySelector/CurrencySelector";
 import AuthMenu from "../AuthMenu/AuthMenu";
 import ToolsMenu from "@/components/ToolsMenu/ToolsMenu";
@@ -108,6 +108,19 @@ const AppBar = () => {
     [isINR, currency]
   );
 
+  /**
+   * The signed-in user's own pages: the records they keep, listed beside the tools
+   * they use to make them.
+   *
+   * Empty while signed out. The routes are behind a guard, so a link to one would
+   * only ever bounce the visitor back to a sign-in page — advertising them to
+   * everyone would describe a product the visitor cannot reach.
+   */
+  const accountPages = useMemo(
+    () => (isSignedIn ? PRIVATE_PAGES : []),
+    [isSignedIn]
+  );
+
   const privatePages = useMemo(
     () => [
       {
@@ -120,8 +133,16 @@ const AppBar = () => {
     []
   );
 
-  const navPages = useMemo(
-    () => [...publicPages, ...privatePages],
+  /**
+   * What the Tools menu expands into.
+   *
+   * The account pages are deliberately excluded: they are the user's own records
+   * rather than tools, they are already on the toolbar beside the trigger, and
+   * listing them in two places at once would mean the same destination appears in
+   * the menu and next to it.
+   */
+  const toolPages = useMemo(
+    () => [...publicPages, ...privatePages].filter((page) => page.enabled),
     [publicPages, privatePages]
   );
 
@@ -166,6 +187,10 @@ const AppBar = () => {
                 </MenuItem>
               ) : null
             )}
+            {/*
+              `AuthMenu` already renders the account rows for a signed-in user in
+              this menu, so they are deliberately not repeated here.
+            */}
             <AuthMenu variant="menu" onNavigate={handleCloseNavMenu("")} />
           </Menu>
         </Box>
@@ -186,29 +211,40 @@ const AppBar = () => {
           sx={{ flexGrow: 0, display: { xs: "none", md: "flex" } }}
         >
           {isSignedIn ? (
-            // A signed-in account already has a place of its own, so the tools
-            // fold into one item rather than filling the toolbar.
-            <ToolsMenu
-              items={navPages.filter((page) => page.enabled)}
-              activePath={pathname}
-            />
-          ) : (
-            navPages.map(({ label, tooltip, to, enabled }) => {
-              const isActive = pathname === to;
-              return enabled ? (
-                <Tooltip key={label} title={tooltip}>
+            <>
+              {/*
+                A signed-in account already has a place of its own, so the tools
+                fold into one item rather than filling the toolbar.
+              */}
+              <ToolsMenu items={toolPages} activePath={pathname} />
+              {accountPages.map(({ label, tooltip, to }) => (
+                <Tooltip key={to} title={tooltip}>
                   <Link
                     href={to}
                     onClick={handleNavLinkClick}
                     className={classnames(styles.navLink, {
-                      [styles.activeNavLink]: isActive,
+                      [styles.activeNavLink]: pathname === to,
                     })}
                   >
                     {label}
                   </Link>
                 </Tooltip>
-              ) : null;
-            })
+              ))}
+            </>
+          ) : (
+            toolPages.map(({ label, tooltip, to }) => (
+              <Tooltip key={label} title={tooltip}>
+                <Link
+                  href={to}
+                  onClick={handleNavLinkClick}
+                  className={classnames(styles.navLink, {
+                    [styles.activeNavLink]: pathname === to,
+                  })}
+                >
+                  {label}
+                </Link>
+              </Tooltip>
+            ))
           )}
         </Box>
 

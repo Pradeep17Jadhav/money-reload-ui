@@ -16,15 +16,39 @@ export type FormErrors = Record<string, string>;
 export type FieldVisibility = {
   /** Another field whose value decides whether this one is shown. */
   name: string;
-  equals: string | boolean;
+  /**
+   * The value that makes this field appear.
+   *
+   * A list, as well as a single value, because one field often belongs to a *group* of values
+   * rather than one: an investment's rate of return applies to every fixed-return type and to
+   * none of the others. Repeating the field once per type would work and would be a list of
+   * near-identical entries to keep in step; one entry with the group it belongs to says what it
+   * means.
+   */
+  equals: string | boolean | Array<string | boolean>;
 };
 
 type FieldBase = {
   name: string;
   label: string;
-  /** Renders in the message slot when there is no error. */
-  helper?: string;
   visibleWhen?: FieldVisibility;
+  /**
+   * A field the form owns but the API does not store.
+   *
+   * It exists to drive the fields that *are* stored, and its value is worked out from them, so
+   * sending it would be sending a key the endpoint does not list — which every one of these
+   * endpoints rejects outright. Excluded from the payload on create and from the
+   * clears-a-hidden-field loop on edit.
+   */
+  formOnly?: boolean;
+  /**
+   * Disabled until the named field holds a value.
+   *
+   * The sibling of {@link FieldVisibility}, and deliberately a weaker condition: `visibleWhen`
+   * asks "does this apply at all", this asks "is there anything yet to apply it to". An end
+   * date with no start date has nothing to count from, so it is shown but cannot be set.
+   */
+  enabledWhen?: { name: string };
 };
 
 export type TextFieldConfig = FieldBase & {
@@ -69,6 +93,17 @@ export type SelectFieldConfig = FieldBase & {
   kind: "select";
   required?: boolean;
   options: { value: string; label: string }[];
+  /**
+   * The options' values are numbers on the wire, not strings.
+   *
+   * A dropdown can only carry string values — that is what an `<option>` holds — so a control
+   * picking from a closed set of *numbers* has to say so, or the chosen `"4"` goes to an API
+   * expecting a number and comes back as `expected number, received string`.
+   *
+   * Opt-in rather than inferred, because a select whose values are genuinely strings — every
+   * enum in this app — must keep being sent as strings.
+   */
+  numeric?: boolean;
 };
 
 export type SwitchFieldConfig = FieldBase & {

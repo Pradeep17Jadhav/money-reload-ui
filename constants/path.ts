@@ -19,17 +19,42 @@ export enum PATHS {
   LOANS = "/loans",
   INCOME = "/income",
   EXPENSES = "/expenses",
+  INVESTMENTS = "/investments",
   GOALS = "/goals",
 }
+
+export type PrivatePage = {
+  to: string;
+  label: string;
+  tooltip: string;
+};
+
+/**
+ * The routes that require a session, with the copy both navigation surfaces share.
+ *
+ * One list rather than a path array plus a label lookup inside `AuthMenu`: the toolbar
+ * and the account menu have to agree on which routes are private *and* what they are
+ * called, and two parallel structures are how they drift apart.
+ */
+export const PRIVATE_PAGES: PrivatePage[] = [
+  { to: PATHS.PROFILE, label: "Profile", tooltip: "Your account" },
+  { to: PATHS.LOANS, label: "Loans", tooltip: "Loans you are tracking" },
+  { to: PATHS.INCOME, label: "Income", tooltip: "Income you have recorded" },
+  {
+    to: PATHS.EXPENSES,
+    label: "Expenses",
+    tooltip: "Expenses you have recorded",
+  },
+  {
+    to: PATHS.INVESTMENTS,
+    label: "Investments",
+    tooltip: "Savings and investments you hold",
+  },
+  { to: PATHS.GOALS, label: "Goals", tooltip: "Goals you are saving towards" },
+];
 
 /**
  * Routes that require a session. Kept as data so the navbar and the guard can
  * agree on exactly which routes are private.
  */
-export const PRIVATE_PATHS = [
-  PATHS.PROFILE,
-  PATHS.LOANS,
-  PATHS.INCOME,
-  PATHS.EXPENSES,
-  PATHS.GOALS,
-] as const;
+export const PRIVATE_PATHS = PRIVATE_PAGES.map((page) => page.to);

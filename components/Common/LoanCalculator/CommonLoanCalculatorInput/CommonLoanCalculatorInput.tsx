@@ -57,6 +57,7 @@ type Props = {
   handleStartMonthChange: (value: Dayjs | null) => void;
   getLoanAmountScale: (value: number) => number;
   getLoanAmountInverseScale: (value: number) => number;
+  onSaveCalculations: () => void;
 };
 
 const CommonLoanCalculatorInput = ({
@@ -80,6 +81,7 @@ const CommonLoanCalculatorInput = ({
   handleStartMonthChange,
   getLoanAmountScale,
   getLoanAmountInverseScale,
+  onSaveCalculations,
 }: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -169,7 +171,7 @@ const CommonLoanCalculatorInput = ({
         </div>
       </LocalizationProvider>
 
-      <PrepaymentInputElement />
+      <PrepaymentInputElement onSaveCalculations={onSaveCalculations} />
 
       {isMobile && (
         <LargeButton onClick={calculate} disabled={!isValidForm} centered>

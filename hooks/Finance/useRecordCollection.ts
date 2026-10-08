@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/authContext";
 import { getAuthErrorCopy } from "@/helpers/apiErrors";
 import type { AuthedRequest } from "@/services/finance/records";
@@ -40,11 +40,32 @@ export type RecordCollection<TItem> = {
 export const useRecordCollection = <TItem,>(config: {
   list: (request: AuthedRequest, query: ListQuery) => Promise<ListResponse<TItem>>;
   remove: (request: AuthedRequest, id: string) => Promise<void>;
+  /**
+   * A filter the screen owns, applied on top of the user's own.
+   *
+   * For narrowing the list from outside the toolbar — `/investments` showing one kind of
+   * holding at a time, driven by its tabs. It goes into the *query* rather than filtering rows
+   * in the browser, because the server has to do the narrowing: paging through everything and
+   * then discarding most of it makes page two of a single-type table empty while page one is
+   * not, and silently caps the count at whatever the page held.
+   *
+   * The user's filters are layered over this rather than replacing it, so choosing one on the
+   * toolbar narrows within the tab instead of escaping it.
+   */
+  baseQuery?: ListQuery;
 }) => {
   const { authorisedRequest } = useAuth();
-  const { list, remove: removeRecord } = config;
+  const { list, remove: removeRecord, baseQuery } = config;
 
-  const [query, setQuery] = useState<ListQuery>(DEFAULT_QUERY);
+  /*
+   * Seeded once. Re-seeding on every `baseQuery` change would throw away the user's page,
+   * sort and filters each time they switch tabs, which reads as the screen having forgotten
+   * what they asked for — so switching a tab re-reads the same query under the new filter.
+   */
+  const [query, setQuery] = useState<ListQuery>({
+    ...DEFAULT_QUERY,
+    ...baseQuery,
+  });
   const [items, setItems] = useState<TItem[]>([]);
   const [meta, setMeta] = useState<ListMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,8 +118,52 @@ export const useRecordCollection = <TItem,>(config: {
     setQuery((current) => ({ ...current, page }));
   }, []);
 
+  /*
+   * The screen's own filter takes effect when it changes, layered *over* whatever the user
+   * has chosen rather than replacing it. Switching tabs re-points the list at a different set
+   * of holdings — it is not a reason to forget their sort order or throw away a filter they
+   * set — and page one because page four of the previous subject means nothing here.
+   *
+   * Keyed on the serialised filter so an object literal rebuilt on every render does not count
+   * as a change and bounce the list back to page one continuously.
+   */
+  const baseKey = JSON.stringify(baseQuery ?? {});
+  const previousBaseQuery = useRef<ListQuery | undefined>(baseQuery);
+
+  useEffect(() => {
+    if (JSON.stringify(previousBaseQuery.current ?? {}) === baseKey) {
+      return;
+    }
+
+    const stale: ListQuery = previousBaseQuery.current ?? {};
+    previousBaseQuery.current = baseQuery;
+
+    setQuery((current) => {
+      const next = { ...current };
+
+      /*
+       * Drop the keys this filter used to set and no longer sets, before layering the new one
+       * over the top.
+       *
+       * Layering alone cannot do this. Merging `{...current, ...baseQuery}` adds the new filter
+       * but never *removes* one, and spreading `undefined` adds nothing at all — so dropping back
+       * to no filter (the "Everything" tab) left the previous kind's `type` sitting in the query,
+       * and the list went on showing that kind's rows while claiming to show everything.
+       */
+      for (const key of Object.keys(stale) as (keyof ListQuery)[]) {
+        if (!(key in (baseQuery ?? {}))) {
+          delete next[key];
+        }
+      }
+
+      return { ...next, ...baseQuery, page: 1 };
+    });
+  }, [baseKey, baseQuery]);
+
   const resetFilters = useCallback(() => {
-    setQuery(DEFAULT_QUERY);
+    // Keeps the screen's own filter: clearing a category filter should not also escape the tab
+    // the user is on.
+    setQuery({ ...DEFAULT_QUERY, ...baseQuery });
   }, []);
 
   const refetch = useCallback(() => {

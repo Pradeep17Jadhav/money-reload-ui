@@ -55,6 +55,29 @@ export const useRecordsScreen = <TItem,>(config: {
   crossFieldRules?: CrossFieldRule[];
   createDefaults?: FormValues;
   recordToValues: (item: TItem) => Record<string, unknown>;
+  /**
+   * Fills in the fields the record does not carry, from the ones it does.
+   *
+   * For a form-only field: the API stores the term, and the end date is arithmetic over it, so
+   * opening a record for editing has to work that sum out or the box would open blank next to
+   * three dropdowns that plainly already hold an answer.
+   */
+  deriveEditValues?: (
+    seeded: FormValues,
+    record: Record<string, unknown>
+  ) => FormValues;
+  /**
+   * What one change does to the other fields, beyond the field itself.
+   *
+   * Two dates that are the same fact entered twice cannot both be sent, so whichever the user
+   * touched last wins and the others are rewritten under their hands. Returning a patch — rather
+   * than the whole next state — keeps the rule free to leave everything else alone.
+   */
+  applyChange?: (change: {
+    name: string;
+    value: string | boolean;
+    current: FormValues;
+  }) => FormValues;
   getId: (item: TItem) => string;
   create: (request: AuthedRequest, payload: Record<string, unknown>) => Promise<TItem>;
   update: (
@@ -71,6 +94,8 @@ export const useRecordsScreen = <TItem,>(config: {
     crossFieldRules = [],
     createDefaults,
     recordToValues,
+    deriveEditValues,
+    applyChange,
     getId,
     create,
     update,
@@ -142,7 +167,10 @@ export const useRecordsScreen = <TItem,>(config: {
 
   const openEdit = useCallback(
     (item: TItem) => {
-      const seeded = valuesFromRecord(recordToValues(item), fields);
+      const record = recordToValues(item);
+      const seeded = deriveEditValues
+        ? deriveEditValues(valuesFromRecord(record, fields), record)
+        : valuesFromRecord(record, fields);
       setValues(seeded);
       setOriginalValues(seeded);
       setTouched({});
@@ -151,26 +179,36 @@ export const useRecordsScreen = <TItem,>(config: {
       setEditingId(getId(item));
       setMode("edit");
     },
-    [fields, getId, recordToValues]
+    [deriveEditValues, fields, getId, recordToValues]
   );
 
   const close = useCallback(() => {
     reset();
   }, [reset]);
 
-  const handleChange = useCallback((name: string, value: string | boolean) => {
-    setValues((current) => ({ ...current, [name]: value }));
+  const handleChange = useCallback(
+    (name: string, value: string | boolean) => {
+      setValues((current) => ({
+        ...current,
+        [name]: value,
+        // The rule runs against the state *before* the change, so it reads the sibling fields as
+        // they stand — the same state the user last saw. It is given the new value explicitly
+        // and never returns a patch naming the field that changed, so the two cannot collide.
+        ...(applyChange ? applyChange({ name, value, current }) : {}),
+      }));
 
-    // A stale server message on a field the user is correcting is worse than none.
-    setServerErrors((current) => {
-      if (!(name in current)) {
-        return current;
-      }
-      const { [name]: _removed, ...rest } = current;
-      return rest;
-    });
-    setBanner(null);
-  }, []);
+      // A stale server message on a field the user is correcting is worse than none.
+      setServerErrors((current) => {
+        if (!(name in current)) {
+          return current;
+        }
+        const { [name]: _removed, ...rest } = current;
+        return rest;
+      });
+      setBanner(null);
+    },
+    [applyChange]
+  );
 
   const handleBlur = useCallback((name: string) => {
     setTouched((current) => (current[name] ? current : { ...current, [name]: true }));

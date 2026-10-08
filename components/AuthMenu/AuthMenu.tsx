@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { MenuItem } from "@mui/material";
 import ProfileMenu from "@/components/ProfileMenu/ProfileMenu";
 import { useAuth } from "@/contexts/authContext";
-import { PATHS, PRIVATE_PATHS } from "@/constants/path";
+import { PATHS, PRIVATE_PAGES } from "@/constants/path";
 
 import styles from "./AuthMenu.module.css";
 
@@ -18,14 +18,6 @@ type Props = {
   variant: "bar" | "menu";
   /** Closes the mobile menu after a row is chosen. */
   onNavigate?: () => void;
-};
-
-const PRIVATE_LABELS: Record<string, string> = {
-  [PATHS.PROFILE]: "Profile",
-  [PATHS.LOANS]: "Loans",
-  [PATHS.INCOME]: "Income",
-  [PATHS.EXPENSES]: "Expenses",
-  [PATHS.GOALS]: "Goals",
 };
 
 const AuthMenu = ({ variant, onNavigate }: Props) => {
@@ -63,9 +55,9 @@ const AuthMenu = ({ variant, onNavigate }: Props) => {
 
     return (
       <>
-        {PRIVATE_PATHS.map((to) => (
-          <MenuItem key={to} onClick={() => go(to)}>
-            <span>{PRIVATE_LABELS[to]}</span>
+        {PRIVATE_PAGES.map((page) => (
+          <MenuItem key={page.to} onClick={() => go(page.to)}>
+            <span>{page.label}</span>
           </MenuItem>
         ))}
         <MenuItem onClick={handleSignOut}>

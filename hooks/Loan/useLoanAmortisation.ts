@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dayjs } from "dayjs";
 import { sanitizeROI } from "@/helpers/numbers";
 import { AmortisationTableFrequency } from "@/types/Loan/LoanTypes";
@@ -10,7 +10,7 @@ import type {
 import { buildAmortisation } from "@/components/Common/LoanCalculator/helpers/amortisation";
 import { generatePDF } from "@/components/Common/LoanCalculator/helpers/pdfGenerator";
 import { Tenure } from "@/types/ConfigTypes";
-import { PrepaymentsByMonth } from "./usePrepayments";
+import { getLoanSignature, PrepaymentsByMonth } from "./usePrepayments";
 import { useCurrency } from "@/contexts/currency";
 import { AnalyticsEventType, trackEvent } from "@/helpers/analytics";
 
@@ -32,6 +32,19 @@ export const useLoanAmortisation = (
    */
   const [overrides, setOverrides] = useState<AmortisationOverrides>({});
 
+  /**
+   * The loan fingerprint the current month changes belong to.
+   *
+   * Restoring a saved scenario replaces the loan and its month changes together, but
+   * the reset effect below cannot tell that apart from a user edit that invalidates
+   * them — both look like "the loan changed". Recording which loan the changes describe
+   * lets it keep them while the loan still matches, and drop them the moment it does not.
+   *
+   * A ref, not state: it must not itself schedule a render, or the effect that reads it
+   * would run twice per loan change.
+   */
+  const signatureRef = useRef<string | null>(null);
+
   const sanitizedROI = sanitizeROI(roi);
   const isIncompleteROT = sanitizedROI[sanitizedROI.length - 1] === ".";
   const rateOfInterest = isIncompleteROT
@@ -45,6 +58,17 @@ export const useLoanAmortisation = (
    * memo's dependencies each time and rebuild the whole schedule for nothing.
    */
   const baseDate = useMemo(() => startMonth.startOf("month"), [startMonth]);
+
+  const loanSignature = useMemo(
+    () =>
+      getLoanSignature({
+        loanAmount,
+        roi,
+        tenure,
+        prepaymentsByMonth,
+      }),
+    [loanAmount, prepaymentsByMonth, roi, tenure]
+  );
 
   const schedule = useMemo(
     () =>
@@ -144,11 +168,36 @@ export const useLoanAmortisation = (
     ]
   );
 
-  // A different loan is a different schedule, so the changes attached to the old
-  // one no longer mean anything.
+  /**
+   * Installs a scenario's month changes wholesale.
+   *
+   * The changes are cleared from `overrides` on any *later* loan edit, so a restored
+   * scenario is reset the moment the user touches the loan — the same rule that
+   * applies to changes they made by hand.
+   */
+  const applyMonthChanges = useCallback(
+    (next: AmortisationOverrides, signature: string) => {
+      signatureRef.current = signature;
+      setOverrides(next);
+    },
+    []
+  );
+
+  /**
+   * A different loan is a different schedule, so changes attached to the old one no
+   * longer mean anything.
+   *
+   * The signature check is what lets a restored scenario through: its changes and its
+   * loan arrive in the same render, so the fingerprint matches and they are kept. A
+   * subsequent edit moves the loan on, the fingerprint stops matching, and they go.
+   */
   useEffect(() => {
+    if (signatureRef.current !== null && signatureRef.current === loanSignature) {
+      return;
+    }
+    signatureRef.current = null;
     setOverrides({});
-  }, [loanAmount, roi, tenureMonths, prepaymentsByMonth]);
+  }, [loanAmount, roi, tenureMonths, prepaymentsByMonth, loanSignature]);
 
   return {
     yearlyRowData: schedule.yearlyRows,
@@ -163,6 +212,7 @@ export const useLoanAmortisation = (
     overrides,
     hasManualChanges,
     applyMonthChange,
+    applyMonthChanges,
     clearMonthChange,
     clearManualChanges,
     getMonthChange,

@@ -24,7 +24,7 @@ export const INCOME_FIELDS: FieldConfig[] = [
   { kind: "select", name: "paymentMode", label: "payment mode", required: true, options: PAYMENT_MODE_OPTIONS },
   { kind: "text", name: "payer", label: "payer", maxLength: 120 },
   { kind: "select", name: "destination", label: "destination", options: DESTINATION_OPTIONS },
-  { kind: "money", name: "taxPaid", label: "tax paid", allowZero: true, helper: "TDS withheld, if any." },
+  { kind: "money", name: "taxPaid", label: "tax paid", allowZero: true },
   { kind: "switch", name: "isRecurring", label: "This is a recurring income" },
   {
     kind: "select",
