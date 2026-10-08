@@ -6,7 +6,7 @@ import {
   getDesktopColumns,
   TableColumnKeys,
 } from "../constants";
-import { getPrintableMonthYear } from "./loan";
+import { formatRate, getPrintableMonthYear } from "./loan";
 import {
   AmortisationTableFrequency,
   AmortisationRow,
@@ -142,6 +142,7 @@ export const generatePDF = async (
         return formatAmount(row[col.key as keyof AmortisationRow]);
       if (col.key === TableColumnKeys.LOAN_PAID_PERCENT)
         return `${row[col.key as keyof AmortisationRow].toFixed(2)}%`;
+      if (col.key === TableColumnKeys.ROI) return `${formatRate(row.interestRate)}%`;
       if (col.key === TableColumnKeys.YEAR) {
         return getPrintableMonthYear(
           tableFrequency,

@@ -1,0 +1,104 @@
+.field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18px;
+}
+
+/* The message slot keeps its height so a validation message never shifts the form. */
+.message {
+    min-height: 18px;
+    margin: 4px 0 0;
+    font-size: 0.78em;
+    line-height: 18px;
+    color: var(--foreground-secondary);
+}
+
+.error {
+    composes: message;
+    color: var(--loss);
+}
+
+.readOnly {
+    border-radius: 0.8rem;
+    background-color: var(--background-ternary);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.readOnlyGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 20px;
+}
+
+.readOnlyLabel {
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--foreground-caption);
+}
+
+.readOnlyValue {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.hint {
+    margin-bottom: 18px;
+    font-size: 0.82em;
+    line-height: 1.5;
+    color: var(--foreground-secondary);
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 8px 24px 20px;
+}
+
+.primaryButton {
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 12px 32px;
+    border-radius: 48px;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--foreground-strongest);
+}
+
+.primaryButton:disabled {
+    cursor: not-allowed;
+    border-color: var(--border-color);
+    background: transparent;
+    color: var(--foreground-caption);
+}
+
+.secondaryButton {
+    font-size: 0.9em;
+    cursor: pointer;
+    padding: 12px 24px;
+    border-radius: 48px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--foreground-secondary);
+}
+
+.resetButton {
+    composes: secondaryButton;
+    border-color: var(--loss);
+    color: var(--loss);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+    .readOnlyGrid {
+        grid-template-columns: 1fr;
+    }
+}

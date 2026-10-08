@@ -8,15 +8,25 @@ import {
   TableHead,
 } from "@mui/material";
 import MonthlyTableRow from "../MonthlyTableRow/MonthlyTableRow";
+import type { AmortisationOverrides } from "@/types/Loan/LoanTypes";
 
 import styles from "./MonthlyTable.module.css";
 
 type Props = {
   monthlyData: AmortisationRow[];
   columns: TableColumns;
+  overrides: AmortisationOverrides;
+  selectedMonthIndex: number | null;
+  onSelectMonth: (monthIndex: number) => void;
 };
 
-const MonthlyTable = ({ monthlyData, columns }: Props) => {
+const MonthlyTable = ({
+  monthlyData,
+  columns,
+  overrides,
+  selectedMonthIndex,
+  onSelectMonth,
+}: Props) => {
   const headerRows = useMemo(
     () =>
       columns.map(({ key, label }) => (
@@ -45,9 +55,12 @@ const MonthlyTable = ({ monthlyData, columns }: Props) => {
       <TableBody>
         {monthlyData.map((monthlyRow) => (
           <MonthlyTableRow
-            key={monthlyRow.year}
+            key={monthlyRow.monthIndex}
             monthlyRow={monthlyRow}
             columns={columns}
+            isSelected={selectedMonthIndex === monthlyRow.monthIndex}
+            hasChanges={!!overrides[monthlyRow.monthIndex]}
+            onSelectMonth={onSelectMonth}
           />
         ))}
       </TableBody>

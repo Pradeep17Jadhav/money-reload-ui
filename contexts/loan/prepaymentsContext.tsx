@@ -19,6 +19,7 @@ export enum PrepaymentsActionType {
   UPDATE_INTERVAL = "UPDATE_INTERVAL",
   ADD_PREPAYMENT = "ADD_PREPAYMENT",
   REMOVE_PREPAYMENT = "REMOVE_PREPAYMENT",
+  REPLACE_PREPAYMENTS = "REPLACE_PREPAYMENTS",
 }
 
 export type PrepaymentsAction =
@@ -38,7 +39,9 @@ export type PrepaymentsAction =
       interval: PrepaymentInterval;
     }
   | { type: PrepaymentsActionType.ADD_PREPAYMENT }
-  | { type: PrepaymentsActionType.REMOVE_PREPAYMENT; startDate: Dayjs };
+  | { type: PrepaymentsActionType.REMOVE_PREPAYMENT; startDate: Dayjs }
+  /** Restores a whole saved scenario in one go. */
+  | { type: PrepaymentsActionType.REPLACE_PREPAYMENTS; prepayments: Prepayment[] };
 
 const prepaymentsReducer = (
   state: Prepayment[],
@@ -65,6 +68,14 @@ const prepaymentsReducer = (
       );
     case PrepaymentsActionType.ADD_PREPAYMENT:
       return [...state, getDefaultPrepayment()];
+    /*
+     * Replaced wholesale rather than patched row by row. A saved scenario's rows are
+     * keyed by start month, and applying them one dispatch at a time would put every
+     * intermediate list — half the old rows beside half the new — through the prepayment
+     * expansion, which would then recompute a schedule for a scenario that never existed.
+     */
+    case PrepaymentsActionType.REPLACE_PREPAYMENTS:
+      return action.prepayments;
     case PrepaymentsActionType.REMOVE_PREPAYMENT:
       return state.filter(
         (prepayment) => !prepayment.startDate.isSame(action.startDate)

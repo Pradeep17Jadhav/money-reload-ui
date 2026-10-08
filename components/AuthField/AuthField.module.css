@@ -1,0 +1,102 @@
+.field {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.input {
+    width: 100%;
+}
+
+/*
+ * The helper text slot always occupies the same height whether or not there is
+ * a message, so an error appearing never shifts the rest of the form.
+ */
+.message {
+    min-height: 20px;
+    margin: 4px 0 0;
+    font-size: 0.8em;
+    line-height: 20px;
+}
+
+.errorMessage {
+    composes: message;
+    color: var(--loss);
+}
+
+.hint {
+    composes: message;
+    color: var(--foreground-secondary);
+}
+
+.toggle {
+    color: var(--foreground-secondary);
+}
+
+.toggle:hover {
+    color: var(--foreground);
+}
+
+.select {
+    width: 100%;
+}
+
+.radioRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.radio {
+    border: 1px solid var(--border-color);
+    border-radius: 48px;
+    padding: 8px 16px;
+    min-width: 96px;
+    cursor: pointer;
+    color: var(--foreground-secondary);
+    transition: border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.radio:hover {
+    border-color: var(--primary);
+    color: var(--foreground);
+}
+
+.radioSelected {
+    composes: radio;
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.radioError {
+    border-color: var(--loss);
+}
+
+/*
+ * The native radio is hidden visually but stays in the tab order and keeps its
+ * accessible name. The visible focus ring is drawn on the pill instead, so it is
+ * never removed without a replacement.
+ */
+.radioInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.radio:focus-within {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+    .radio {
+        flex: 1 1 auto;
+    }
+}

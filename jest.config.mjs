@@ -6,7 +6,19 @@ const createJestConfig = nextJest({ dir: "./" });
 const customJestConfig = {
   testEnvironment: "jsdom",
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
-  testMatch: ["<rootDir>/app/**/__tests__/**/*.test.(ts|tsx)"],
+  // `app/**` keeps the existing page tests in their `__tests__` folders. The other
+  // patterns allow a test to sit beside the file it covers. Listed one per tree
+  // rather than with a brace pattern, which this glob does not expand.
+  testMatch: [
+    "<rootDir>/app/**/__tests__/**/*.test.(ts|tsx)",
+    "<rootDir>/components/**/*.test.(ts|tsx)",
+    "<rootDir>/constants/**/*.test.(ts|tsx)",
+    "<rootDir>/contexts/**/*.test.(ts|tsx)",
+    "<rootDir>/helpers/**/*.test.(ts|tsx)",
+    "<rootDir>/hooks/**/*.test.(ts|tsx)",
+    "<rootDir>/services/**/*.test.(ts|tsx)",
+    "<rootDir>/types/**/*.test.(ts|tsx)",
+  ],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
   },

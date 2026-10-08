@@ -12,16 +12,12 @@
     font-weight: 400;
 }
 
-.pageTitle, .pageSubtitle {
+.pageTitle {
     text-align: center;
 }
 
 @media (max-width: 600px) {
     .pageTitle {
         font-size: 1.5em;
-    }
-
-    .pageSubtitle {
-        font-size: 1em;
     }
 }

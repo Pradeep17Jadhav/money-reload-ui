@@ -22,6 +22,13 @@ import {
   getDefaultTenure,
 } from "./constants";
 import { trackCalculateEvent } from "@/helpers/analytics";
+import {
+  fixedDepositValue,
+  lumpsumValue,
+  monthsIn,
+  recurringDepositValue,
+  sipValue,
+} from "@/components/Common/CommonCalculator/helpers/returns";
 
 type Props = {
   calculatorType: CalculatorType;
@@ -54,57 +61,32 @@ export const useCalculator = ({ calculatorType }: Props) => {
     if (!investment) {
       return;
     }
-    const totalMonths =
-      tenure.years * 12 + tenure.months + tenure.days / 30.4375;
-    let totalInvested = investment * totalMonths;
+    // The month conversion is the shared one, so a three-year tenure plus a fortnight is the
+    // same length of time here as it is in `/investments`.
+    let totalInvested = investment * monthsIn(tenure);
     totalInvested += haveInitialInvestment ? initialInvestment : 0;
     setTotalInvestment(totalInvested);
   }, [
     haveInitialInvestment,
     initialInvestment,
     investment,
-    tenure.days,
-    tenure.months,
-    tenure.years,
+    tenure,
   ]);
 
   const calculateSIP = useCallback(() => {
-    const monthlyRateOfReturn = Math.pow(1 + parseFloat(roi) / 100, 1 / 12) - 1;
-    const totalMonths =
-      tenure.years * 12 + tenure.months + tenure.days / 30.4375;
-
-    let maturityValue: number;
+    const totalMonths = monthsIn(tenure);
     const stepUp = parseFloat(stepUpPercentage);
 
-    if (haveStepUp && stepUp > 0) {
-      let currentInvestment = investment;
-      let totalUnits = 0;
-      for (let month = 1; month <= totalMonths; month++) {
-        totalUnits +=
-          currentInvestment *
-          Math.pow(1 + monthlyRateOfReturn, totalMonths - month + 1);
-        if (month % 12 === 0) {
-          currentInvestment *= 1 + stepUp / 100;
-        }
-      }
-      maturityValue = Math.round(totalUnits);
-    } else {
-      maturityValue = Math.round(
-        investment *
-          ((Math.pow(1 + monthlyRateOfReturn, totalMonths) - 1) /
-            monthlyRateOfReturn) *
-          (1 + monthlyRateOfReturn)
-      );
-    }
+    // Delegated, so this screen and the investments list cannot quote different SIP figures.
+    const combinedMaturityValue = sipValue({
+      monthlyAmount: investment,
+      initialAmount: haveInitialInvestment ? initialInvestment : 0,
+      rate: parseFloat(roi),
+      tenure,
+      stepUpPercent: haveStepUp && stepUp > 0 ? stepUp : 0,
+    });
 
     const totalInvested = initialInvestment + investment * totalMonths;
-    const initialInvestmentMaturityValue = haveInitialInvestment
-      ? Math.round(
-          initialInvestment * Math.pow(1 + monthlyRateOfReturn, totalMonths)
-        )
-      : 0;
-    const combinedMaturityValue =
-      maturityValue + initialInvestmentMaturityValue;
     const updatedProfit = combinedMaturityValue - totalInvested;
 
     calculateTotalInvestment();
@@ -113,9 +95,7 @@ export const useCalculator = ({ calculatorType }: Props) => {
     setTimesMultiplied(toDecimal(combinedMaturityValue / totalInvested));
   }, [
     roi,
-    tenure.years,
-    tenure.months,
-    tenure.days,
+    tenure,
     stepUpPercentage,
     haveStepUp,
     initialInvestment,
@@ -125,55 +105,53 @@ export const useCalculator = ({ calculatorType }: Props) => {
   ]);
 
   const calculateFD = useCallback(() => {
-    const totalMonths =
-      tenure.years * 12 + tenure.months + tenure.days / 30.4375;
-    const quarterlyRateOfReturn = parseFloat(roi) / 400;
-    const totalQuarters = totalMonths / 3;
-    const maturityValue = Math.round(
-      investment * Math.pow(1 + quarterlyRateOfReturn, totalQuarters)
-    );
+    /*
+     * Quarterly, as an FD always is — passed in rather than baked into the helper, because
+     * `/investments` lets the user state the frequency and must reach the same helper.
+     */
+    const maturityValue = fixedDepositValue({
+      amount: investment,
+      rate: parseFloat(roi),
+      tenure,
+      compoundingsPerYear: 4,
+    });
     const profit = maturityValue - investment;
 
     setMaturityValue(maturityValue);
     setProfit(profit);
     setTimesMultiplied(toDecimal(maturityValue / investment));
-  }, [tenure.years, tenure.months, tenure.days, roi, investment]);
+  }, [tenure, roi, investment]);
 
   const calculateRD = useCallback(() => {
-    const compoundFrequency = 4; //4 times per year
-    const totalMonths =
-      tenure.years * 12 + tenure.months + tenure.days / 30.4375;
-    const monthlyRateOfReturn = parseFloat(roi) / 100 / compoundFrequency;
-    let totalMaturityValue = 0;
-    const totalInvestment = initialInvestment + investment * totalMonths;
-    for (let i = 1; i <= totalMonths; i++) {
-      const monthsLeft = totalMonths - i + 1;
-      const timeInYears = monthsLeft / 12;
-      const maturityValueForDeposit =
-        investment *
-        Math.pow(1 + monthlyRateOfReturn, compoundFrequency * timeInYears);
-      totalMaturityValue += maturityValueForDeposit;
-    }
+    // A deposit every month, compounded quarterly, as an RD always is.
+    const totalMaturityValue = recurringDepositValue({
+      monthlyAmount: investment,
+      initialAmount: initialInvestment,
+      rate: parseFloat(roi),
+      tenure,
+      compoundingsPerYear: 4,
+    });
+    const totalInvestment = initialInvestment + investment * monthsIn(tenure);
     const profit = totalMaturityValue - totalInvestment;
+
     setMaturityValue(Math.round(totalMaturityValue));
     setProfit(Math.round(profit));
     setTotalInvestment(totalInvestment);
     setTimesMultiplied(toDecimal(totalMaturityValue / totalInvestment));
-  }, [
-    tenure.years,
-    tenure.months,
-    tenure.days,
-    roi,
-    initialInvestment,
-    investment,
-  ]);
+  }, [tenure, roi, initialInvestment, investment]);
 
   const calculateLumpsum = useCallback(() => {
-    const monthlyRateOfReturn = Math.pow(1 + parseFloat(roi) / 100, 1 / 12) - 1;
-    const totalMonths = tenure.years * 12 + tenure.months;
-    const maturityValue = Math.round(
-      investment * Math.pow(1 + monthlyRateOfReturn, totalMonths)
-    );
+    /*
+     * Compounded monthly, as this calculator has always quoted. Note this is not the same as
+     * quarterly: an annual rate split twelve ways and compounded twelve times is a different
+     * sum from one split four ways and compounded four times. Left exactly as it was.
+     */
+    const maturityValue = lumpsumValue({
+      amount: investment,
+      rate: parseFloat(roi),
+      tenure,
+      compoundingsPerYear: 12,
+    });
     const profit = maturityValue - investment;
 
     setMaturityValue(maturityValue);

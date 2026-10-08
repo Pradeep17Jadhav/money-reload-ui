@@ -7,6 +7,7 @@ import ThemeProvider from "@/components/ThemeProvider/ThemeProvider";
 import Footer from "@/components/Footer/Footer";
 import ScrollToTop from "@/components/ScrollToTop/ScrollToTop";
 import { CurrencyProvider } from "@/contexts/currency";
+import { AuthProvider } from "@/contexts/authContext";
 import CanonicalTag from "@/components/System/CanonicalTag/CanonicalTag";
 
 import "./globals.css";
@@ -137,10 +138,12 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <CurrencyProvider>
-            <AppBar />
-            <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
-            <Footer />
-            <ScrollToTop />
+            <AuthProvider>
+              <AppBar />
+              <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
+              <Footer />
+              <ScrollToTop />
+            </AuthProvider>
           </CurrencyProvider>
         </ThemeProvider>
       </body>

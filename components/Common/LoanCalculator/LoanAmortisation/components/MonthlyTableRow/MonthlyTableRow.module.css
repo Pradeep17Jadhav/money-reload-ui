@@ -1,0 +1,18 @@
+.clickableRow {
+    transition: background-color 0.15s ease-in-out;
+}
+
+/* Marks the month that has a change attached to it, so it stays obvious after
+   the dialog closes. */
+.changedRow {
+    box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.selectedRow {
+    box-shadow: inset 3px 0 0 var(--primary-light);
+}
+
+.clickableRow:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}

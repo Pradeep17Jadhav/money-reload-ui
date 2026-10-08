@@ -1,0 +1,37 @@
+.authControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+}
+
+/*
+ * The one call to action in the toolbar for a signed-out visitor. A link, so it
+ * is a real destination for the keyboard and for a middle click, wearing the
+ * primary treatment the button used to have.
+ */
+.barButton {
+    box-sizing: content-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 64px;
+    padding: 0 20px;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    border-bottom: 2px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+.barButton:hover {
+    background: var(--hover-background);
+}
+
+.barButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}

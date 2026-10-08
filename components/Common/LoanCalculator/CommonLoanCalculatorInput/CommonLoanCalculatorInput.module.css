@@ -1,0 +1,9 @@
+/*
+ * Keeps the 32px rhythm the rest of the form uses. Both edges are set, because
+ * the gap to the next block comes from whichever margin is larger — leaving the
+ * bottom at zero would halve the space above the prepayments section.
+ */
+.startMonthField {
+    margin-top: 32px;
+    margin-bottom: 32px;
+}

@@ -3,3 +3,9 @@
     align-items: center;
     justify-content: right;
 }
+
+.chevron {
+    display: inline-flex;
+    align-items: center;
+    color: var(--foreground-secondary);
+}

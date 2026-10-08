@@ -1,0 +1,11 @@
+.wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.avatar {
+    background-color: var(--primary);
+    color: var(--foreground-strongest);
+    font-weight: 700;
+    letter-spacing: 1px;
+}

@@ -1,6 +1,9 @@
 .appbarContainer {
     background-color: var(--background-secondary);
     border-bottom: 1px solid var(--border-color);
+    /* Positioned, so the z-index below applies and anything the toolbar drops
+       down out of its own row stays above the page. */
+    position: relative;
     z-index: 10;
     box-shadow: var(--shadow-primary);
     opacity: 0.95;

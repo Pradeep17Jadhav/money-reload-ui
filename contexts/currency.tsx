@@ -66,7 +66,34 @@ export type CurrencyState = {
 };
 export type CurrencyAction = { type: "SET_CURRENCY"; payload: Currency };
 
-export const currencyReducer = (
+export /**
+ * Exported so a test can supply a currency without the provider's geolocation, which
+ * reaches the network on mount and then resets to USD when that fails. The context is
+ * the whole contract; only the *detection* is the provider's job.
+ */
+type CurrencyContextType = {
+  currency: Currency;
+  currencySymbol: string;
+  locale: string;
+  isINR: boolean;
+  setCurrency: (currency: Currency) => void;
+  formatAmount: (
+    amount: number,
+    decimals?: number,
+    showSymbol?: boolean
+  ) => string;
+};
+
+export const CurrencyContext = createContext<CurrencyContextType>({
+  currency: "USD",
+  currencySymbol: "$",
+  locale: "en-US",
+  isINR: false,
+  setCurrency: () => {},
+  formatAmount: (amount) => `$${amount.toLocaleString("en-US")}`,
+});
+
+const currencyReducer = (
   state: CurrencyState,
   action: CurrencyAction
 ): CurrencyState => {
@@ -81,26 +108,6 @@ export const currencyReducer = (
     default:
       return state;
   }
-};
-
-const CurrencyContext = createContext<CurrencyContextType>({
-  currency: "USD",
-  currencySymbol: "$",
-  isINR: false,
-  setCurrency: () => {},
-  formatAmount: (amount) => `$${amount.toLocaleString("en-US")}`,
-});
-
-type CurrencyContextType = {
-  currency: Currency;
-  currencySymbol: string;
-  isINR: boolean;
-  setCurrency: (currency: Currency) => void;
-  formatAmount: (
-    amount: number,
-    decimals?: number,
-    showSymbol?: boolean
-  ) => string;
 };
 
 export const initialCurrencyState: CurrencyState = {

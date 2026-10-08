@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { AmortisationRow, TableColumns } from "@/types/Loan/LoanTypes";
+import type { AmortisationOverrides } from "@/types/Loan/LoanTypes";
 import { TableRow, TableCell, TableBody, Collapse } from "@mui/material";
 import YearlyTableRow from "../YearlyTableRow/YearlyTableRow";
 import MonthlyTable from "../MonthlyTable/MonthlyTable";
@@ -10,6 +11,9 @@ type Props = {
   amortisationDataMonthly: AmortisationRow[];
   columns: TableColumns;
   toggleRow: (year: number) => void;
+  overrides: AmortisationOverrides;
+  selectedMonthIndex: number | null;
+  onSelectMonth: (monthIndex: number) => void;
 };
 
 const YearlyTableBody = ({
@@ -18,6 +22,9 @@ const YearlyTableBody = ({
   amortisationDataMonthly,
   columns,
   toggleRow,
+  overrides,
+  selectedMonthIndex,
+  onSelectMonth,
 }: Props) => {
   const getMonthlyDataForYear = (year: number) => {
     return amortisationDataMonthly.filter(
@@ -41,7 +48,13 @@ const YearlyTableBody = ({
             <TableRow>
               <TableCell colSpan={columns.length} style={{ padding: 0 }}>
                 <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                  <MonthlyTable monthlyData={monthlyData} columns={columns} />
+                  <MonthlyTable
+                  monthlyData={monthlyData}
+                  columns={columns}
+                  overrides={overrides}
+                  selectedMonthIndex={selectedMonthIndex}
+                  onSelectMonth={onSelectMonth}
+                />
                 </Collapse>
               </TableCell>
             </TableRow>

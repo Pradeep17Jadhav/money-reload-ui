@@ -1,0 +1,17 @@
+.savedCalculations {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0 8px;
+}
+
+.subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .subtitle {
+        font-size: 1em;
+    }
+}

@@ -1,0 +1,117 @@
+.field {
+    margin-bottom: 16px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+/*
+ * The figures read off the loan. A panel rather than disabled inputs: they are not locked
+ * against being changed, they simply are not this form's to set. The month below is stored;
+ * the amount comes back from the loan on every read.
+ */
+.derived {
+    border-radius: 8px;
+    background-color: var(--background-ternary);
+    padding: 14px 16px;
+    margin: 4px 0 18px;
+}
+
+.derivedTitle {
+    margin: 0 0 10px;
+    font-size: 0.78em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--foreground-caption);
+}
+
+.derivedGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 16px;
+    margin: 0;
+}
+
+.derivedGrid dt {
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--foreground-caption);
+}
+
+.derivedGrid dd {
+    margin: 2px 0 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.helper {
+    margin: 8px 0 0;
+    font-size: 0.78em;
+    line-height: 1.5;
+    color: var(--foreground-secondary);
+}
+
+.error {
+    margin: 4px 2px 0;
+    font-size: 0.78em;
+    color: var(--loss);
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 8px 24px 20px;
+}
+
+.primaryButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 12px 32px;
+    border-radius: 48px;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--foreground-strongest);
+}
+
+.primaryButton:disabled {
+    cursor: not-allowed;
+    border-color: var(--border-color);
+    background: transparent;
+    color: var(--foreground-caption);
+}
+
+.secondaryButton {
+    font-size: 0.9em;
+    cursor: pointer;
+    padding: 12px 24px;
+    border-radius: 48px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--foreground-secondary);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .derivedGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
