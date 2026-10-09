@@ -3,6 +3,7 @@
 import { Ref, useMemo } from "react";
 import Section from "@/components/Section/Section";
 import { formatPrice } from "@/helpers/price";
+import { PAISE_PER_RUPEE } from "@/helpers/money";
 import {
   Paper,
   Table,
@@ -20,6 +21,8 @@ import styles from "./IncomeTaxSummary.module.css";
 
 type Props = {
   income: number;
+  /** Integer paise. Everything the additional-income lines come to, taxed after the salary. */
+  additionalIncomeTotal?: number;
   resultsReady: boolean;
   budget: Budget;
   taxLiabilityRef?: Ref<HTMLDivElement>;
@@ -36,6 +39,7 @@ type Props = {
 
 const IncomeTaxSummary = ({
   income,
+  additionalIncomeTotal = 0,
   resultsReady,
   budget,
   taxLiabilityRef,
@@ -91,6 +95,24 @@ const IncomeTaxSummary = ({
               <span>₹{formatPrice(incomeAfterDeductions)}</span>
             </span>
           </>
+        )}
+
+        {/*
+          * Shown separately from the salary rather than folded into it, because it is taxed
+          * differently: the salary takes the lower slabs first and this only reaches what is left.
+          * One combined "taxable income" line would hide the very thing the section below the
+          * calculator is for.
+         */}
+        {!!additionalIncomeTotal && (
+          <span className={styles.summaryDistribution}>
+            <span>Additional Income</span>
+            <span data-testid="summary-additional-income">
+              ₹
+              {formatPrice(
+                additionalIncomeTotal / PAISE_PER_RUPEE
+              )}
+            </span>
+          </span>
         )}
         {resultsReady && !!applicableTaxSlabs.length && (
           <>

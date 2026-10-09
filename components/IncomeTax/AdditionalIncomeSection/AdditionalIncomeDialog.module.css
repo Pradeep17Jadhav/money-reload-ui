@@ -1,0 +1,31 @@
+.field {
+  margin-bottom: 16px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 24px 16px;
+}
+
+.secondaryButton {
+  padding: 8px 18px;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.15));
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.secondaryButton:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.primaryButton {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+}

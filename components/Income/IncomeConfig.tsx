@@ -14,6 +14,7 @@ import {
 import type { MultiFilter } from "@/components/Records/RecordToolbar/RecordToolbar";
 import type { SummaryTile } from "@/components/Records/SummaryTiles/SummaryTiles";
 import type { FieldConfig } from "@/types/RecordFormTypes";
+import type { ResolvedIncome } from "@/hooks/Income/useImportedIncomeFigures";
 import type { Income, IncomesSummary } from "@/types/FinanceTypes";
 
 export const INCOME_FIELDS: FieldConfig[] = [
@@ -39,25 +40,61 @@ export const INCOME_FIELDS: FieldConfig[] = [
   { kind: "text", name: "notes", label: "notes", maxLength: 2000, multiline: true },
 ];
 
-export const INCOME_COLUMNS: TableColumn<Income>[] = [
+/**
+ * The columns, given a way to read an income's figures.
+ *
+ * An imported income stores neither an amount nor a tax — both belong to the scenario it points at
+ * — so the table reads them through the resolver rather than off the record. Taking them straight
+ * off the record would print a dash for every imported row and read as an income worth nothing.
+ *
+ * Exported as a function for that reason, which is the shape the loans and investments tables
+ * already take.
+ */
+export const incomeColumns = (
+  figuresFor: (income: Income) => ResolvedIncome
+): TableColumn<Income>[] => [
   {
     key: "source",
     header: "Source",
-    render: (income) => (
-      <CellStack
-        primary={income.source}
-        secondary={income.isRecurring && income.recurrenceFrequency ? income.recurrenceFrequency : undefined}
-      />
-    ),
+    render: (income) => {
+      const { scenarioLabel } = figuresFor(income);
+
+      return (
+        <CellStack
+          primary={income.source}
+          secondary={
+            scenarioLabel ??
+            (income.isRecurring && income.recurrenceFrequency
+              ? income.recurrenceFrequency
+              : undefined)
+          }
+        />
+      );
+    },
   },
   { key: "category", header: "Category", render: (income) => labelForEnumValue(income.category) },
   { key: "date", header: "Date", render: (income) => formatDateOnly(income.date) },
-  { key: "amount", header: "Amount", numeric: true, render: (income) => formatPaise(income.amount) },
+  {
+    key: "amount",
+    header: "Amount",
+    numeric: true,
+    render: (income) => {
+      const { amount } = figuresFor(income);
+
+      // A dash rather than a zero: there is not enough stored to say, which is a different and
+      // wrong answer from an income worth nothing.
+      return amount === null ? "-" : formatPaise(amount);
+    },
+  },
   {
     key: "taxPaid",
     header: "Tax",
     numeric: true,
-    render: (income) => (income.taxPaid ? formatPaise(income.taxPaid) : "-"),
+    render: (income) => {
+      const { taxPaid } = figuresFor(income);
+
+      return taxPaid ? formatPaise(taxPaid) : "-";
+    },
   },
   { key: "paymentMode", header: "Mode", render: (income) => labelForEnumValue(income.paymentMode) },
   {
@@ -66,6 +103,18 @@ export const INCOME_COLUMNS: TableColumn<Income>[] = [
     render: (income) => <Badge>{labelForEnumValue(income.destination)}</Badge>,
   },
 ];
+
+/**
+ * The columns used when nothing can resolve an income — the first render, before the scenarios
+ * arrive. Reads each income's own figures, so a screen of recorded incomes draws completely
+ * before any request completes.
+ */
+export const INCOME_COLUMNS = incomeColumns((income) => ({
+  amount: income.amount,
+  taxPaid: income.taxPaid,
+  scenarioLabel: null,
+  isImported: false,
+}));
 
 export const INCOME_FILTERS: MultiFilter[] = [
   { key: "category", label: "Category", options: INCOME_CATEGORY_OPTIONS },

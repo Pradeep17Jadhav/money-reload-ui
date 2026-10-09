@@ -295,8 +295,14 @@ export type Loan = RecordTimestamps & {
 
 export type Income = RecordTimestamps & {
   source: string;
-  /** Integer paise. */
-  amount: number;
+  /**
+   * Integer paise, or `null` on an income imported from a saved income-tax scenario.
+   *
+   * An imported income's amount is read from that scenario rather than stored, so the two can
+   * never disagree once a budget is revised. A client that reads a `null` here must resolve it
+   * from `incomeTaxCalculationId` — and must never read it as zero.
+   */
+  amount: number | null;
   /** `YYYY-MM-DD`. */
   date: string;
   category: IncomeCategory;
@@ -305,8 +311,16 @@ export type Income = RecordTimestamps & {
   destination: Destination;
   reason: string | null;
   reference: string | null;
-  /** Integer paise. TDS withheld. */
+  /**
+   * Integer paise. TDS withheld, or `null` on an imported income — the tax belongs to the
+   * scenario, which in turn reads it from the site's budget config.
+   */
   taxPaid: number | null;
+  /**
+   * The saved income-tax scenario this entry was imported from, or `null` for one recorded by
+   * hand. The presence of this is what makes the two fields above resolve from elsewhere.
+   */
+  incomeTaxCalculationId: string | null;
   isRecurring: boolean;
   recurrenceFrequency: RecurrenceFrequency | null;
   notes: string | null;

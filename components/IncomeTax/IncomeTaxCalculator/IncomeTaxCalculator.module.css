@@ -1,0 +1,15 @@
+/*
+ * The dropdown sits above the calculator, centred, rather than inside the left column.
+ *
+ * It applies to the whole calculator rather than to one side of it, so putting it in a column
+ * would claim it belongs to that column's inputs — and a scenario it restores reaches the income
+ * field, the year and the deduction toggle on both sides of the layout.
+ *
+ * The width cap is on the dropdown's own module, so the control keeps the same measure the loan
+ * calculator's does rather than stretching the full width of the page.
+ */
+.savedCalculations {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0 8px;
+}

@@ -1,4 +1,4 @@
-import IncomeTaxCalculator from "@/components/IncomeTax/IncomeTaxCalculator/IncomeTaxCalculator";
+import IncomeTaxCalculatorWithSavedCalculations from "@/components/IncomeTax/IncomeTaxCalculatorWithSavedCalculations/IncomeTaxCalculatorWithSavedCalculations";
 import { getConfig } from "@/helpers/config";
 import { Config } from "@/types/ConfigTypes";
 import FAQs from "@/components/Common/FAQs/FAQs";
@@ -15,7 +15,7 @@ const IncomeTaxPage = async () => {
     <div className={styles.incometaxContainer}>
       <h1 className={styles.pageTitle}>Income Tax Calculator</h1>
       <h2 className={styles.pageSubtitle}>According to Budget February 2026</h2>
-      <IncomeTaxCalculator incomeTaxConfig={incomeTax} />
+      <IncomeTaxCalculatorWithSavedCalculations incomeTaxConfig={incomeTax} />
       <IncomeTaxPageInformation />
       <FAQs faqs={faqs} />
     </div>

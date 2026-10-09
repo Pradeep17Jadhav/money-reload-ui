@@ -32,6 +32,16 @@ type Props = {
   standardDeduction: number;
   income: number;
   budgetIndex: number;
+  /**
+   * Opens the save dialog. Absent for an anonymous visitor — the whole saved-calculations feature
+   * is behind a session, so there is nothing the button could do.
+   */
+  onSave?: () => void;
+  /**
+   * A scenario is only worth saving once there are figures in it, so an empty calculator cannot be
+   * snapshotted into a list the user then has to recognise by name alone.
+   */
+  isSaveDisabled?: boolean;
 };
 
 const IncomeTaxInput = ({
@@ -44,6 +54,8 @@ const IncomeTaxInput = ({
   standardDeduction,
   income,
   budgetIndex,
+  onSave,
+  isSaveDisabled,
 }: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -116,6 +128,22 @@ const IncomeTaxInput = ({
       {isMobile && (
         <LargeButton onClick={onCalculate} disabled={!isValidForm} centered>
           CALCULATE
+        </LargeButton>
+      )}
+
+      {/*
+        * Only when the caller offers it, which it does for a signed-in user only. Placed after
+        * the inputs rather than beside CALCULATE so the two read in the order they are used:
+        * fill the figures in, then keep them.
+       */}
+      {onSave && (
+        <LargeButton
+          onClick={onSave}
+          disabled={isSaveDisabled}
+          centered
+          data-testid="save-income-tax-calculation"
+        >
+          SAVE CALCULATION
         </LargeButton>
       )}
     </Section>
